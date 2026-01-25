@@ -1,0 +1,40 @@
+/* Status badge */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 2rem 0;
+    padding: 0.6rem 1rem;
+    border: 1px solid #333;
+    font-size: 0.9rem;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.status-badge.open .status-dot {
+    background: var(--open);
+    box-shadow: 0 0 6px var(--open);
+}
+
+.status-badge.closed .status-dot {
+    background: var(--closed);
+}
+
+.status-text {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text);
+}
+
+/* Page-specific meta */
+.divider {
+    color: var(--text-dim);
+}
+
+.people {
+    color: var(--text-dim);
+}

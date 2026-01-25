@@ -1,0 +1,99 @@
+/* Form layout */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+/* Labels */
+label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+}
+
+/* Inputs */
+input,
+textarea,
+select {
+    background: var(--bg);
+    border: 1px solid #333;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.85rem;
+    color: var(--text);
+    font-family: inherit;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* Focus states */
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+/* Placeholder */
+::placeholder {
+    color: var(--text-dim);
+}
+
+/* Help / hint text */
+.form-hint {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+}
+
+/* Errors */
+.form-error {
+    font-size: 0.7rem;
+    color: var(--closed);
+}
+
+/* Buttons */
+button,
+input[type="submit"] {
+    align-self: flex-start;
+    background: transparent;
+    border: 1px solid #333;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+button:hover,
+input[type="submit"]:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+}
+
+/* Disabled */
+input:disabled,
+textarea:disabled,
+select:disabled,
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Checkbox & radio */
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: var(--accent);
+}

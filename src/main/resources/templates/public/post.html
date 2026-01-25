@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Post')}"></head>
+<body>
+<nav th:replace="~{fragments/header :: nav}"></nav>
+<main class="container">
+    <h1 th:text="${post.title}">Post Title</h1>
+    <div th:utext="${post.content}">Content here</div>
+</main>
+</body>
+</html>

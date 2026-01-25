@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head('Admin Dashboard')}"></head>
+<body>
+<nav th:replace="~{fragments/header :: nav}"></nav>
+
+<main class="container">
+    <div class="admin-header">
+        <h1>Dashboard</h1>
+        <a th:href="@{/admin/posts/new}" class="btn btn-primary">New Post</a>
+    </div>
+
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
+    <div class="posts-table">
+        <table>
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="post : ${posts}">
+                <td th:text="${post.title}">Post Title</td>
+                <td>
+                            <span class="status"
+                                  th:classappend="${post.status.name() == 'PUBLISHED'} ? 'status-published' : 'status-draft'"
+                                  th:text="${post.status}">DRAFT</span>
+                </td>
+                <td th:text="${#temporals.format(post.createdAt, 'MMM dd, yyyy')}">Jan 01, 2024</td>
+                <td class="actions">
+                    <a th:href="@{/admin/posts/edit/{id}(id=${post.id})}" class="btn btn-small">Edit</a>
+
+                    <form th:if="${post.status.name() == 'DRAFT'}"
+                          th:action="@{/admin/posts/publish/{id}(id=${post.id})}"
+                          method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-small btn-success">Publish</button>
+                    </form>
+
+                    <form th:action="@{/admin/posts/delete/{id}(id=${post.id})}"
+                          method="post" style="display:inline;"
+                          onsubmit="return confirm('Are you sure?');">
+                        <button type="submit" class="btn btn-small btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(posts)}">
+                <td colspan="4" class="empty-state">No posts yet. Create your first post!</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

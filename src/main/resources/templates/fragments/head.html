@@ -1,0 +1,12 @@
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}"> - Warp3</title>
+    <link rel="stylesheet" th:href="@{/css/common/reset.css}">
+    <link rel="stylesheet" th:href="@{/css/common/base.css}">
+    <link rel="stylesheet" th:href="@{/css/common/variables.css}">
+    <link rel="stylesheet" th:href="@{/css/common/components/forms.css}">
+    <link rel="stylesheet" th:href="@{/css/fragments/header.css}">
+    <link rel="stylesheet" th:href="@{/css/fragments/footer.css}">
+    <link rel="stylesheet" th:href="@{/css/pages/{page}.css(page=${pageName})}">
+</head>
