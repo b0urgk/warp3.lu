@@ -203,17 +203,47 @@ body:has(.calendar-grid) .container {
 }
 
 @media (max-width: 600px) {
+    .calendar-grid {
+        border: none;
+        overflow-x: hidden;
+    }
+
+    .calendar-dow {
+        padding: 0.3rem 0;
+        font-size: 0.55rem;
+        letter-spacing: 0;
+    }
+
     .calendar-day {
-        min-height: 3rem;
-        padding: 0.2rem;
+        min-height: 2.2rem;
+        padding: 0.15rem;
     }
 
     .day-number {
         font-size: 0.65rem;
     }
 
+    .day-events {
+        gap: 1px;
+        margin-top: 1px;
+    }
+
     .day-event-title {
-        font-size: 0.5rem;
+        display: none;
+    }
+
+    .day-events::before {
+        content: '';
+        display: block;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--accent);
+    }
+
+    .calendar-header h2 {
+        font-size: 0.9rem;
+        letter-spacing: 0.1em;
     }
 
     .event-item {
