@@ -1,16 +1,19 @@
 <head th:fragment="head">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${pageTitle} + ' - Warp3'"></title>
+    <title th:text="${pageTitle} + ' - Warp3 ADMIN'"></title>
     <link rel="stylesheet" th:href="@{/css/common/reset.css}">
-    <link rel="stylesheet" th:href="@{/css/common/base.css}">
     <link rel="stylesheet" th:href="@{/css/common/variables.css}">
+    <link rel="stylesheet" th:href="@{/css/common/admin/base.css}">
     <link rel="stylesheet" th:href="@{/css/common/components/forms.css}">
     <link rel="stylesheet" th:href="@{/css/common/components/buttons.css}">
     <link rel="stylesheet" th:href="@{/css/common/components/modals.css}">
     <link rel="stylesheet" th:href="@{/css/common/components/alerts.css}">
-    <link rel="stylesheet" th:href="@{/css/fragments/header.css}">
+    <link rel="stylesheet" th:href="@{/css/fragments/admin/header.css}">
     <link rel="stylesheet" th:href="@{/css/fragments/footer.css}">
-    <link rel="stylesheet" th:href="@{/css/pages/{page}.css(page=${pageName})}">
+    <link th:if="${customCss}" th:each="css : ${customCss}" rel="stylesheet" th:href="@{/css/pages/{file}.css(file=${css})}">
+    <link th:if="${customCss == null and pageName != null}" rel="stylesheet" th:href="@{/css/pages/{page}.css(page=${pageName})}">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
 </head>

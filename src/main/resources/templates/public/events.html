@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      layout:decorate="~{layouts/main}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <link rel="stylesheet" th:href="@{/css/pages/events.css}">
+</head>
+
+<main layout:fragment="content">
+
+    <div class="calendar-header">
+        <a th:href="@{/events(year=${prevYear}, month=${prevMonth})}" class="calendar-nav">&larr;</a>
+        <h2 th:text="${monthLabel}">March 2026</h2>
+        <a th:href="@{/events(year=${nextYear}, month=${nextMonth})}" class="calendar-nav">&rarr;</a>
+    </div>
+
+    <div class="calendar-grid">
+        <div class="calendar-dow">Mon</div>
+        <div class="calendar-dow">Tue</div>
+        <div class="calendar-dow">Wed</div>
+        <div class="calendar-dow">Thu</div>
+        <div class="calendar-dow">Fri</div>
+        <div class="calendar-dow">Sat</div>
+        <div class="calendar-dow">Sun</div>
+
+        <th:block th:each="week : ${weeks}">
+            <div th:each="day : ${week}"
+                 class="calendar-day"
+                 th:classappend="${day.isToday ? 'is-today' : ''} + ' ' + ${day.isCurrentMonth ? '' : 'other-month'}">
+                <span class="day-number" th:text="${day.dayOfMonth}">1</span>
+                <div class="day-events" th:if="${day.isCurrentMonth && !#lists.isEmpty(day.events)}">
+                    <span th:each="event : ${day.events}" class="day-event-title" th:text="${event.title}">Event</span>
+                </div>
+            </div>
+        </th:block>
+    </div>
+
+    <div th:if="${#lists.isEmpty(monthEvents)}" class="events-empty">
+        <p>No events this month.</p>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(monthEvents)}" class="events-list">
+        <h3 class="events-list-heading">Events this month</h3>
+        <article th:each="event : ${monthEvents}" class="event-item">
+            <time class="event-date">
+                <span class="event-day" th:text="${#temporals.format(event.startTime, 'dd')}">08</span>
+                <span class="event-month" th:text="${#temporals.format(event.startTime, 'MMM')}">Mar</span>
+            </time>
+            <div class="event-content">
+                <h3 class="event-title" th:text="${event.title}">Event Title</h3>
+                <div class="event-meta">
+                    <span class="event-time">
+                        <span th:if="${event.allDay}">All day</span>
+                        <span th:unless="${event.allDay}" th:text="${#temporals.format(event.startTime, 'HH:mm')} + ' – ' + ${#temporals.format(event.endTime, 'HH:mm')}">20:00 – 23:00</span>
+                    </span>
+                    <span class="event-location" th:text="${event.location}">Differdange</span>
+                </div>
+                <p th:if="${event.description}" class="event-description" th:text="${event.description}">Description...</p>
+                <a th:if="${event.linkedPost}" th:href="@{/blog/{slug}(slug=${event.linkedPost.slug})}" class="event-link">Read more →</a>
+            </div>
+        </article>
+    </div>
+
+</main>
+
+</html>

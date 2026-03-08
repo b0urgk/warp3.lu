@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layouts/admin}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+<div layout:fragment="content">
+    <div class="form-container">
+        <div class="form-header">
+            <h1 th:text="${user.id != null} ? 'Edit User' : 'New User'">New User</h1>
+            <a th:href="@{/admin}" class="btn">← Back</a>
+        </div>
+
+        <form th:action="@{/admin/users/save}" method="post">
+            <input type="hidden" name="id" th:value="${user.id}">
+
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" class="form-input" name="username" th:value="${user.username}" required placeholder="Username...">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-input" name="email" th:value="${user.email}" required placeholder="Email...">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" th:text="${user.id != null} ? 'New Password (leave empty to keep current)' : 'Password'">Password</label>
+                <input type="password" class="form-input" name="password" th:required="${user.id == null}" placeholder="Password...">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Role</label>
+                <select class="form-select" name="role">
+                    <option th:each="role : ${roles}"
+                            th:value="${role}"
+                            th:text="${role}"
+                            th:selected="${user.role == role}">ADMIN</option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save User</button>
+                <a th:href="@{/admin}" class="btn">Cancel</a>
+            </div>
+        </form>
+
+        <form th:if="${user.id != null}" th:action="@{/admin/users/delete/{id}(id=${user.id})}" method="post" class="form-actions" style="margin-top: 1rem;">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this user?')">Delete User</button>
+        </form>
+    </div>
+
+    <script th:inline="javascript">
+        document.querySelector(`.tab[data-section="users"]`).classList.add('active');
+    </script>
+</div>
+</body>
+</html>

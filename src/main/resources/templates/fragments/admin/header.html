@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<div id="header">
+    <!-- Top Header -->
+    <header class="top-header">
+        <div class="logo">Warp3 <span>Admin</span></div>
+        <a href="/" class="back-link">← Back to site</a>
+    </header>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab" data-section="posts" onclick="switchTab('posts')">Posts</button>
+        <button class="tab" data-section="events" onclick="switchTab('events')">Events</button>
+        <button class="tab" data-section="users" onclick="switchTab('users')">Users</button>
+    </div>
+</div>
+</html>

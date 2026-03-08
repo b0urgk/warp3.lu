@@ -1,11 +1,37 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/header :: head('Blog')}"></head>
-<body>
-<nav th:replace="~{fragments/header :: nav}"></nav>
-<main class="container">
-    <h1>Blog</h1>
-    <p>Posts coming soon.</p>
+<html xmlns:th="http://www.thymeleaf.org"
+      layout:decorate="~{layouts/main}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <link rel="stylesheet" th:href="@{/css/pages/blog.css}">
+</head>
+
+<main layout:fragment="content">
+
+    <div class="blog-header">
+        <h2>Blog</h2>
+    </div>
+
+    <div th:if="${#lists.isEmpty(posts)}" class="blog-empty">
+        <p>No posts yet.</p>
+    </div>
+
+    <div class="blog-list">
+        <article th:each="post : ${posts}" class="blog-item">
+            <a th:href="@{/blog/{slug}(slug=${post.slug})}" class="blog-item-link">
+                <time class="blog-item-date">
+                    <span th:if="${post.publishedAt}" th:text="${#temporals.format(post.publishedAt, 'dd MMM yyyy')}">20 Jan 2025</span>
+                    <span th:unless="${post.publishedAt}" th:text="${#temporals.format(post.createdAt, 'dd MMM yyyy')}">20 Jan 2025</span>
+                </time>
+                <div class="blog-item-content">
+                    <h3 class="blog-item-title" th:text="${post.title}">Post Title</h3>
+                    <p th:if="${post.excerpt}" class="blog-item-excerpt" th:text="${post.excerpt}">Short excerpt...</p>
+                </div>
+            </a>
+        </article>
+    </div>
+
 </main>
-</body>
+
 </html>

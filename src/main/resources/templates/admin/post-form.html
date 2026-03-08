@@ -1,22 +1,345 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/header :: head('Edit Post')}"></head>
+<html xmlns:th="http://www.thymeleaf.org"
+      layout:decorate="~{layouts/admin}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <body>
-<nav th:replace="~{fragments/header :: nav}"></nav>
-<main class="container">
-    <h1>Edit Post</h1>
-    <form th:action="@{/admin/posts/save}" th:object="${post}" method="post">
+<div layout:fragment="content">
+
+    <div class="editor-header">
+        <h1 th:text="${post.id != null ? 'Edit Post' : 'New Post'}">Edit Post</h1>
+        <a th:href="@{/admin/posts}" class="btn">← Back to Posts</a>
+    </div>
+
+    <form th:action="@{/admin/posts/save}" th:object="${post}" method="post" class="editor-form">
         <input type="hidden" th:field="*{id}">
-        <div class="form-group">
-            <label>Title</label>
-            <input type="text" th:field="*{title}" required>
+
+        <!-- Title & Meta -->
+        <div class="editor-meta">
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" th:field="*{title}" required placeholder="Post title...">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Slug</label>
+                    <input type="text" th:field="*{slug}" placeholder="auto-generated-from-title">
+                    <span class="form-hint">Leave empty to auto-generate</span>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select th:field="*{status}">
+                        <option value="DRAFT">Draft</option>
+                        <option value="PUBLISHED">Published</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Excerpt</label>
+                <input type="text" th:field="*{excerpt}" placeholder="Brief summary for listings...">
+            </div>
         </div>
-        <div class="form-group">
-            <label>Content</label>
-            <textarea th:field="*{content}" rows="10" required></textarea>
+
+        <!-- Markdown Editor -->
+        <div class="editor-container">
+            <div class="editor-toolbar">
+                <div class="toolbar-group">
+                    <button type="button" class="toolbar-btn" data-action="bold" title="Bold (Ctrl+B)">
+                        <i data-lucide="bold"></i>
+                    </button>
+                    <button type="button" class="toolbar-btn" data-action="italic" title="Italic (Ctrl+I)">
+                        <i data-lucide="italic"></i>
+                    </button>
+                    <button type="button" class="toolbar-btn" data-action="strikethrough" title="Strikethrough">
+                        <i data-lucide="strikethrough"></i>
+                    </button>
+                </div>
+                <div class="toolbar-group">
+                    <button type="button" class="toolbar-btn" data-action="h2" title="Heading 2">
+                        <i data-lucide="heading-2"></i>
+                    </button>
+                    <button type="button" class="toolbar-btn" data-action="h3" title="Heading 3">
+                        <i data-lucide="heading-3"></i>
+                    </button>
+                </div>
+                <div class="toolbar-group">
+                    <button type="button" class="toolbar-btn" data-action="link" title="Link (Ctrl+K)">
+                        <i data-lucide="link"></i>
+                    </button>
+                    <button type="button" class="toolbar-btn" data-action="image" title="Image">
+                        <i data-lucide="image"></i>
+                    </button>
+                    <button type="button" class="toolbar-btn" data-action="code" title="Inline Code">
+                        <i data-lucide="code"></i>
+                    </button>
+                    <button type="button" class="toolbar-btn" data-action="codeblock" title="Code Block">
+                        <i data-lucide="square-code"></i>
+                    </button>
+                </div>
+                <div class="toolbar-group">
+                    <button type="button" class="toolbar-btn" data-action="ul" title="Bullet List">
+                        <i data-lucide="list"></i>
+                    </button>
+                    <button type="button" class="toolbar-btn" data-action="ol" title="Numbered List">
+                        <i data-lucide="list-ordered"></i>
+                    </button>
+                    <button type="button" class="toolbar-btn" data-action="quote" title="Blockquote">
+                        <i data-lucide="quote"></i>
+                    </button>
+                    <button type="button" class="toolbar-btn" data-action="hr" title="Horizontal Rule">
+                        <i data-lucide="minus"></i>
+                    </button>
+                </div>
+                <div class="toolbar-spacer"></div>
+                <div class="toolbar-group">
+                    <button type="button" class="toolbar-btn preview-toggle" id="preview-toggle" title="Toggle Preview">
+                        <i data-lucide="eye"></i>
+                        <span>Preview</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="editor-panes">
+                <div class="editor-pane editor-input">
+                    <label>Content (Markdown)</label>
+                    <textarea th:field="*{content}" id="content-editor" required placeholder="Write your post in Markdown..."></textarea>
+                </div>
+                <div class="editor-pane editor-preview" id="preview-pane">
+                    <label>Preview</label>
+                    <div class="preview-content post-body" id="preview-content"></div>
+                </div>
+            </div>
         </div>
-        <button type="submit" class="btn btn-primary">Save</button>
+
+        <!-- Actions -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save Post</button>
+            <button type="submit" name="publish" value="true" class="btn btn-success" th:if="${post.status?.name() != 'PUBLISHED'}">Save & Publish</button>
+            <a th:href="@{/admin/posts}" class="btn">Cancel</a>
+        </div>
     </form>
-</main>
+
+    <script th:inline="none">
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Configure marked to match server-side commonmark + softbreak
+        marked.setOptions({
+            gfm: true,
+            breaks: true
+        });
+
+        // Highlight active tab
+        document.querySelector('.tab[data-section="posts"]')?.classList.add('active');
+
+        const editor = document.getElementById('content-editor');
+        const previewPane = document.getElementById('preview-pane');
+        const previewContent = document.getElementById('preview-content');
+        const previewToggle = document.getElementById('preview-toggle');
+
+        // Toggle preview
+        let previewVisible = false;
+        previewToggle.addEventListener('click', () => {
+            previewVisible = !previewVisible;
+            previewPane.classList.toggle('active', previewVisible);
+            previewToggle.classList.toggle('active', previewVisible);
+
+            const icon = previewToggle.querySelector('i');
+            icon.setAttribute('data-lucide', previewVisible ? 'eye-off' : 'eye');
+            lucide.createIcons();
+
+            if (previewVisible) {
+                updatePreview();
+            }
+        });
+
+        // Update preview on input (debounced)
+        let previewTimeout;
+        editor.addEventListener('input', () => {
+            if (previewVisible) {
+                clearTimeout(previewTimeout);
+                previewTimeout = setTimeout(updatePreview, 150);
+            }
+        });
+
+        // Render markdown with marked.js
+        function updatePreview() {
+            previewContent.innerHTML = marked.parse(editor.value);
+        }
+
+        // Get current line from cursor position
+        function getCurrentLine(text, cursorPos) {
+            const beforeCursor = text.substring(0, cursorPos);
+            const lineStart = beforeCursor.lastIndexOf('\n') + 1;
+            const lineEnd = text.indexOf('\n', cursorPos);
+            return {
+                text: text.substring(lineStart, lineEnd === -1 ? text.length : lineEnd),
+                start: lineStart
+            };
+        }
+
+        // Toolbar actions
+        document.querySelectorAll('.toolbar-btn[data-action]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const action = btn.dataset.action;
+                const start = editor.selectionStart;
+                const end = editor.selectionEnd;
+                const selected = editor.value.substring(start, end);
+                let insert = '';
+                let cursorOffset = 0;
+
+                switch(action) {
+                    case 'bold':
+                        insert = `**${selected || 'bold text'}**`;
+                        cursorOffset = selected ? 0 : -2;
+                        break;
+                    case 'italic':
+                        insert = `*${selected || 'italic text'}*`;
+                        cursorOffset = selected ? 0 : -1;
+                        break;
+                    case 'strikethrough':
+                        insert = `~~${selected || 'strikethrough'}~~`;
+                        cursorOffset = selected ? 0 : -2;
+                        break;
+                    case 'h2':
+                        insert = `## ${selected || 'Heading'}`;
+                        break;
+                    case 'h3':
+                        insert = `### ${selected || 'Heading'}`;
+                        break;
+                    case 'link':
+                        insert = `[${selected || 'link text'}](url)`;
+                        cursorOffset = selected ? -1 : -5;
+                        break;
+                    case 'image':
+                        insert = `![${selected || 'alt text'}](image-url)`;
+                        cursorOffset = selected ? -1 : -11;
+                        break;
+                    case 'code':
+                        insert = `\`${selected || 'code'}\``;
+                        cursorOffset = selected ? 0 : -1;
+                        break;
+                    case 'codeblock':
+                        insert = `\`\`\`\n${selected || 'code'}\n\`\`\``;
+                        cursorOffset = selected ? 0 : -4;
+                        break;
+                    case 'ul':
+                        insert = `- ${selected || 'list item'}`;
+                        break;
+                    case 'ol':
+                        insert = `1. ${selected || 'list item'}`;
+                        break;
+                    case 'quote':
+                        insert = `> ${selected || 'quote'}`;
+                        break;
+                    case 'hr':
+                        insert = `\n---\n`;
+                        break;
+                }
+
+                editor.value = editor.value.substring(0, start) + insert + editor.value.substring(end);
+                editor.focus();
+                const newPos = start + insert.length + cursorOffset;
+                editor.setSelectionRange(newPos, newPos);
+
+                if (previewVisible) updatePreview();
+            });
+        });
+
+        // Keyboard shortcuts
+        editor.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd shortcuts
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'b') {
+                    e.preventDefault();
+                    document.querySelector('[data-action="bold"]').click();
+                } else if (e.key === 'i') {
+                    e.preventDefault();
+                    document.querySelector('[data-action="italic"]').click();
+                } else if (e.key === 'k') {
+                    e.preventDefault();
+                    document.querySelector('[data-action="link"]').click();
+                }
+                return;
+            }
+
+            // Tab to indent
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = editor.selectionStart;
+                editor.value = editor.value.substring(0, start) + '    ' + editor.value.substring(editor.selectionEnd);
+                editor.setSelectionRange(start + 4, start + 4);
+                return;
+            }
+
+            // Enter: auto-continue lists
+            if (e.key === 'Enter') {
+                const pos = editor.selectionStart;
+                const line = getCurrentLine(editor.value, pos);
+
+                // Ordered list: "1. text", "2. text", etc.
+                const olMatch = line.text.match(/^(\d+)\.\s(.*)$/);
+                if (olMatch) {
+                    e.preventDefault();
+                    const num = parseInt(olMatch[1]);
+                    const content = olMatch[2];
+
+                    // If line content is empty, break out of list
+                    if (content.trim() === '') {
+                        // Remove the empty list prefix
+                        editor.value = editor.value.substring(0, line.start) + editor.value.substring(pos);
+                        editor.setSelectionRange(line.start, line.start);
+                    } else {
+                        const insert = '\n' + (num + 1) + '. ';
+                        editor.value = editor.value.substring(0, pos) + insert + editor.value.substring(pos);
+                        const newPos = pos + insert.length;
+                        editor.setSelectionRange(newPos, newPos);
+                    }
+                    if (previewVisible) updatePreview();
+                    return;
+                }
+
+                // Unordered list: "- text" or "* text"
+                const ulMatch = line.text.match(/^([-*])\s(.*)$/);
+                if (ulMatch) {
+                    e.preventDefault();
+                    const marker = ulMatch[1];
+                    const content = ulMatch[2];
+
+                    // If line content is empty, break out of list
+                    if (content.trim() === '') {
+                        editor.value = editor.value.substring(0, line.start) + editor.value.substring(pos);
+                        editor.setSelectionRange(line.start, line.start);
+                    } else {
+                        const insert = '\n' + marker + ' ';
+                        editor.value = editor.value.substring(0, pos) + insert + editor.value.substring(pos);
+                        const newPos = pos + insert.length;
+                        editor.setSelectionRange(newPos, newPos);
+                    }
+                    if (previewVisible) updatePreview();
+                    return;
+                }
+
+                // Blockquote: "> text"
+                const quoteMatch = line.text.match(/^>\s(.*)$/);
+                if (quoteMatch) {
+                    e.preventDefault();
+                    const content = quoteMatch[1];
+
+                    if (content.trim() === '') {
+                        editor.value = editor.value.substring(0, line.start) + editor.value.substring(pos);
+                        editor.setSelectionRange(line.start, line.start);
+                    } else {
+                        const insert = '\n> ';
+                        editor.value = editor.value.substring(0, pos) + insert + editor.value.substring(pos);
+                        const newPos = pos + insert.length;
+                        editor.setSelectionRange(newPos, newPos);
+                    }
+                    if (previewVisible) updatePreview();
+                    return;
+                }
+            }
+        });
+    </script>
+</div>
 </body>
 </html>

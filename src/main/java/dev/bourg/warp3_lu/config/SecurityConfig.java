@@ -16,7 +16,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/blog/**", "/page/**").permitAll()
+                        .requestMatchers("/", "/blog", "/blog/**", "/events", "/events/**", "/page/**").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/login").permitAll()  // Add this line explicitly

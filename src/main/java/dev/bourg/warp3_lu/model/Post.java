@@ -1,7 +1,6 @@
 package dev.bourg.warp3_lu.model;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -21,8 +20,13 @@ public class Post {
     @Column(columnDefinition = "TEXT")
     private String excerpt;
 
-    @Column(columnDefinition = "TEXT",nullable = false)
+    /** Raw markdown content (what the author writes) */
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
+
+    /** Pre-rendered HTML (generated from markdown on save) */
+    @Column(columnDefinition = "TEXT")
+    private String contentHtml;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -43,23 +47,22 @@ public class Post {
     }
 
     @PrePersist
-    public void onCreate(){
+    public void onCreate() {
         this.createdAt = LocalDateTime.now();
-        if(slug == null ||slug.isEmpty()){
+        if (slug == null || slug.isEmpty()) {
             slug = generateSlug(title);
         }
     }
 
-
-    private String generateSlug(String title){
-        if(title == null) return "";
+    private String generateSlug(String title) {
+        if (title == null) return "";
         return title.toLowerCase()
-                .toLowerCase()
                 .replaceAll("[^a-z0-9\\s-]", "")
                 .replaceAll("\\s+", "-")
                 .replaceAll("-+", "-");
     }
 
+    // Getters & Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -75,6 +78,9 @@ public class Post {
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
 
+    public String getContentHtml() { return contentHtml; }
+    public void setContentHtml(String contentHtml) { this.contentHtml = contentHtml; }
+
     public Status getStatus() { return status; }
     public void setStatus(Status status) { this.status = status; }
 
@@ -86,7 +92,7 @@ public class Post {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
 
-    public void publish(){
+    public void publish() {
         this.status = Status.PUBLISHED;
         this.publishedAt = LocalDateTime.now();
     }

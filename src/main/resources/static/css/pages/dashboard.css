@@ -1,0 +1,398 @@
+/* =============================================
+   DASHBOARD - PAGE SPECIFIC STYLES
+   ============================================= */
+
+/* =============================================
+   PAGE HEADER (section headers)
+   ============================================= */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.header h1 {
+    font-size: 1.25rem;
+    font-weight: normal;
+    letter-spacing: 0.05em;
+}
+
+/* =============================================
+   SECTIONS
+   ============================================= */
+.section {
+    display: none;
+}
+
+.section.active {
+    display: block;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2.5rem;
+    color: var(--text-dim);
+    background: var(--bg-light);
+    border: 1px dashed var(--border);
+}
+
+.empty-state p {
+    margin-bottom: 1rem;
+}
+
+/* =============================================
+   FILTERS
+   ============================================= */
+.filters {
+    display: flex;
+    gap: 0.35rem;
+    margin-bottom: 1.25rem;
+}
+
+.filter-btn {
+    padding: 0.35rem 0.7rem;
+    font-family: inherit;
+    font-size: 0.7rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.filter-btn:hover {
+    border-color: var(--text-dim);
+    color: var(--text);
+}
+
+.filter-btn.active {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+/* =============================================
+   STATS CARDS
+   ============================================= */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: var(--bg-light);
+    border: 1px solid var(--border);
+    padding: 1rem;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+}
+
+/* =============================================
+   STATUS BADGES
+   ============================================= */
+.status-badge {
+    display: inline-block;
+    padding: 0.15rem 0.4rem;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-badge.published,
+.status-badge.PUBLISHED {
+    background: var(--accent-dim);
+    color: #fff;
+}
+
+.status-badge.draft,
+.status-badge.DRAFT {
+    background: var(--bg-lighter);
+    color: var(--text-dim);
+}
+
+.status-badge.upcoming {
+    background: var(--accent-dim);
+    color: #fff;
+}
+
+.status-badge.ongoing {
+    background: var(--warning);
+    color: #fff;
+}
+
+.status-badge.past {
+    background: var(--bg-lighter);
+    color: var(--text-dim);
+}
+
+/* =============================================
+   POSTS GRID
+   ============================================= */
+.posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.post-card {
+    background: var(--bg-light);
+    border: 1px solid var(--border);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.post-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+    gap: 0.5rem;
+}
+
+.post-card-title {
+    font-size: 0.95rem;
+    font-weight: normal;
+    color: var(--text);
+    margin: 0;
+    flex: 1;
+}
+
+.post-card-excerpt {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-bottom: 0.75rem;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.post-card-tags {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+}
+
+.tag {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.35rem;
+    background: var(--bg-lighter);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.post-card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+}
+
+.post-card-actions {
+    display: flex;
+    gap: 0.35rem;
+}
+
+/* =============================================
+   EVENTS LIST
+   ============================================= */
+.events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.event-item {
+    display: grid;
+    grid-template-columns: 80px 1fr auto auto;
+    gap: 1rem;
+    align-items: center;
+    background: var(--bg-light);
+    border: 1px solid var(--border);
+    padding: 1rem;
+}
+
+.event-item.past {
+    opacity: 0.6;
+}
+
+.event-date-box {
+    text-align: center;
+    padding: 0.5rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+}
+
+.event-date-month {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+}
+
+.event-date-day {
+    font-size: 1.5rem;
+    line-height: 1;
+    margin: 0.15rem 0;
+}
+
+.event-date-year {
+    font-size: 0.6rem;
+    color: var(--text-dim);
+}
+
+.event-info {
+    min-width: 0;
+}
+
+.event-name {
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+
+.event-details {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+
+.event-details > span {
+    margin-right: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.event-details .icon-sm {
+    width: 0.85rem;
+    height: 0.85rem;
+}
+
+.event-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+}
+
+.attendee-count {
+    background: var(--bg-lighter);
+    padding: 0.2rem 0.5rem;
+    font-size: 0.7rem;
+}
+
+.event-actions {
+    display: flex;
+    gap: 0.35rem;
+}
+
+.recurrence-badge {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.3rem;
+    background: var(--bg-lighter);
+    color: var(--text-dim);
+    margin-left: 0.5rem;
+}
+
+/* =============================================
+   USERS LIST
+   ============================================= */
+.users-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.user-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 1rem;
+    align-items: center;
+    background: var(--bg-light);
+    border: 1px solid var(--border);
+    padding: 1rem;
+}
+
+.user-name {
+    font-size: 0.95rem;
+}
+
+.user-email {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+
+.user-date {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+}
+
+.user-actions {
+    display: flex;
+    gap: 0.35rem;
+}
+
+.status-badge.ADMIN {
+    background: var(--accent-dim);
+    color: #fff;
+}
+
+.status-badge.AUTHOR {
+    background: var(--bg-lighter);
+    color: var(--text-dim);
+}
+
+/* =============================================
+   RESPONSIVE
+   ============================================= */
+@media (max-width: 600px) {
+    .stats {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .stat-card {
+        padding: 0.75rem 0.5rem;
+    }
+    .stat-value {
+        font-size: 1.35rem;
+    }
+    .event-item {
+        grid-template-columns: 65px 1fr;
+        gap: 0.75rem;
+    }
+    .event-meta {
+        grid-column: span 2;
+        justify-content: flex-start;
+    }
+    .event-actions {
+        grid-column: span 2;
+        justify-content: flex-end;
+    }
+    .posts-grid {
+        grid-template-columns: 1fr;
+    }
+}

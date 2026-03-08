@@ -1,58 +1,258 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/header :: head('Admin Dashboard')}"></head>
+<html layout:decorate="~{layouts/admin}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
-<nav th:replace="~{fragments/header :: nav}"></nav>
+    <div layout:fragment="content">
+        <!-- Flash message -->
+        <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
 
-<main class="container">
-    <div class="admin-header">
-        <h1>Dashboard</h1>
-        <a th:href="@{/admin/posts/new}" class="btn btn-primary">New Post</a>
+        <!-- Posts Section -->
+        <div id="posts-section" class="section active">
+            <div class="header">
+                <h1>Posts</h1>
+                <a th:href="@{/admin/posts/new}" class="btn btn-primary">+ New Post</a>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" th:text="${#lists.size(posts)}">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" th:text="${#lists.size(posts.?[status.name() == 'PUBLISHED'])}">0</div>
+                    <div class="stat-label">Published</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" th:text="${#lists.size(posts.?[status.name() == 'DRAFT'])}">0</div>
+                    <div class="stat-label">Drafts</div>
+                </div>
+            </div>
+
+            <div class="filters">
+                <button class="filter-btn active" data-filter="all" onclick="filterPosts('all')">All</button>
+                <button class="filter-btn" data-filter="published" onclick="filterPosts('published')">Published</button>
+                <button class="filter-btn" data-filter="draft" onclick="filterPosts('draft')">Drafts</button>
+            </div>
+
+            <div class="posts-grid" id="posts-grid">
+                <!-- Empty state -->
+                <div th:if="${#lists.isEmpty(posts)}" class="empty-state">
+                    <p>No posts yet</p>
+                    <a th:href="@{/admin/posts/new}" class="btn btn-primary">Create Post</a>
+                </div>
+
+                <!-- Post cards -->
+                <div th:each="post : ${posts}" class="post-card" th:data-status="${post.status.name().toLowerCase()}">
+                    <div class="post-card-header">
+                        <h3 class="post-card-title" th:text="${post.title}">Post Title</h3>
+                        <span class="status-badge" th:classappend="${post.status}" th:text="${post.status}">DRAFT</span>
+                    </div>
+                    <p class="post-card-excerpt" th:text="${post.excerpt != null ? post.excerpt : post.content}">Excerpt...</p>
+                    <div class="post-card-meta">
+            <span>
+              <span th:if="${post.author != null}" th:text="${post.author.username}">Author</span>
+              <span th:if="${post.author == null}">Anonymous</span>
+              · <span th:text="${#temporals.format(post.createdAt, 'MMM dd, yyyy')}">Jan 01, 2024</span>
+            </span>
+                        <div class="post-card-actions">
+                            <a th:href="@{/admin/posts/edit/{id}(id=${post.id})}" class="btn btn-small">Edit</a>
+                            <form th:if="${post.status.name() == 'DRAFT'}"
+                                  th:action="@{/admin/posts/publish/{id}(id=${post.id})}"
+                                  method="post" style="display:inline;">
+                                <button type="submit" class="btn btn-small btn-success">Publish</button>
+                            </form>
+                            <form th:action="@{/admin/posts/delete/{id}(id=${post.id})}"
+                                  method="post" style="display:inline;"
+                                  onsubmit="return confirm('Are you sure you want to delete this post?');">
+                                <button type="submit" class="btn btn-small btn-danger">Del</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Events Section -->
+        <div id="events-section" class="section">
+            <div class="header">
+                <h1>Events</h1>
+                <a th:href="@{/admin/events/new}" class="btn btn-primary">+ New Event</a>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" th:text="${#lists.size(events)}">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="events-upcoming-count">0</div>
+                    <div class="stat-label">Upcoming</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" th:text="${#lists.size(events.?[recurrenceType.name() != 'NONE'])}">0</div>
+                    <div class="stat-label">Recurring</div>
+                </div>
+            </div>
+
+            <div class="filters">
+                <button class="filter-btn active" data-filter="all" onclick="filterEvents('all')">All</button>
+                <button class="filter-btn" data-filter="upcoming" onclick="filterEvents('upcoming')">Upcoming</button>
+                <button class="filter-btn" data-filter="past" onclick="filterEvents('past')">Past</button>
+            </div>
+
+            <div class="events-list" id="events-list">
+                <!-- Empty state -->
+                <div th:if="${#lists.isEmpty(events)}" class="empty-state">
+                    <p>No events yet</p>
+                    <a th:href="@{/admin/events/new}" class="btn btn-primary">Create Event</a>
+                </div>
+
+                <!-- Event items -->
+                <div th:each="event : ${events}"
+                     class="event-item"
+                     th:classappend="${#temporals.format(event.startTime, 'yyyy-MM-dd') < #dates.format(#dates.createNow(), 'yyyy-MM-dd')} ? 'past' : ''"
+                     th:data-date="${#temporals.format(event.startTime, 'yyyy-MM-dd')}">
+                    <div class="event-date-box">
+                        <div class="event-date-month" th:text="${#temporals.format(event.startTime, 'MMM')}">Jan</div>
+                        <div class="event-date-day" th:text="${#temporals.format(event.startTime, 'd')}">1</div>
+                        <div class="event-date-year" th:text="${#temporals.format(event.startTime, 'yyyy')}">2025</div>
+                    </div>
+                    <div class="event-info">
+                        <div class="event-name">
+                            <span th:text="${event.title}">Event Name</span>
+                            <span th:if="${event.recurrenceType.name() != 'NONE'}"
+                                  class="recurrence-badge"
+                                  th:text="${event.recurrenceType}">WEEKLY</span>
+                        </div>
+                        <div class="event-details">
+                            <span><i data-lucide="clock" class="icon-sm"></i> <span th:text="${#temporals.format(event.startTime, 'HH:mm')}">20:00</span></span>
+                            <span th:if="${event.location != null}"><i data-lucide="map-pin" class="icon-sm"></i> <span th:text="${event.location}">Location</span></span>
+                            <span th:if="${event.linkedPost != null}"><i data-lucide="file-text" class="icon-sm"></i> <span th:text="${event.linkedPost.title}">Linked Post</span></span>
+                        </div>
+                    </div>
+                    <div class="event-meta">
+                        <span class="status-badge upcoming" th:if="${#temporals.format(event.startTime, 'yyyy-MM-dd') >= #dates.format(#dates.createNow(), 'yyyy-MM-dd')}">upcoming</span>
+                        <span class="status-badge past" th:if="${#temporals.format(event.startTime, 'yyyy-MM-dd') < #dates.format(#dates.createNow(), 'yyyy-MM-dd')}">past</span>
+                    </div>
+                    <div class="event-actions">
+                        <a th:href="@{/admin/events/edit/{id}(id=${event.id})}" class="btn btn-small">Edit</a>
+                        <form th:action="@{/admin/events/delete/{id}(id=${event.id})}"
+                              method="post" style="display:inline;"
+                              onsubmit="return confirm('Are you sure you want to delete this event?');">
+                            <button type="submit" class="btn btn-small btn-danger">Del</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Section -->
+        <div id="users-section" class="section">
+            <div class="header">
+                <h1>Users</h1>
+                <a th:href="@{/admin/users/new}" class="btn btn-primary">+ New User</a>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" th:text="${#lists.size(users)}">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" th:text="${#lists.size(users.?[role.name() == 'ADMIN'])}">0</div>
+                    <div class="stat-label">Admins</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" th:text="${#lists.size(users.?[role.name() == 'AUTHOR'])}">0</div>
+                    <div class="stat-label">Authors</div>
+                </div>
+            </div>
+
+            <div class="users-list">
+                <div th:if="${#lists.isEmpty(users)}" class="empty-state">
+                    <p>No users yet</p>
+                    <a th:href="@{/admin/users/new}" class="btn btn-primary">Create User</a>
+                </div>
+
+                <div th:each="user : ${users}" class="user-item">
+                    <div class="user-info">
+                        <div class="user-name" th:text="${user.username}">username</div>
+                        <div class="user-email" th:text="${user.email}">email@example.com</div>
+                    </div>
+                    <div class="user-meta">
+                        <span class="status-badge" th:classappend="${user.role}" th:text="${user.role}">ADMIN</span>
+                    </div>
+                    <div class="user-meta">
+                        <span class="user-date" th:if="${user.createdAt}" th:text="${#temporals.format(user.createdAt, 'MMM dd, yyyy')}">Jan 01, 2024</span>
+                    </div>
+                    <div class="user-actions">
+                        <a th:href="@{/admin/users/edit/{id}(id=${user.id})}" class="btn btn-small">Edit</a>
+                        <form th:action="@{/admin/users/delete/{id}(id=${user.id})}"
+                              method="post" style="display:inline;"
+                              onsubmit="return confirm('Are you sure you want to delete this user?');">
+                            <button type="submit" class="btn btn-small btn-danger">Del</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script th:inline="javascript">
+            lucide.createIcons();
+            document.querySelector(`.tab[data-section="posts"]`).classList.add('active');
+
+            // Tab switching
+            function switchTab(section) {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelector(`.tab[data-section="${section}"]`).classList.add('active');
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                document.getElementById(section + '-section').classList.add('active');
+            }
+
+            // Post filtering (client-side)
+            function filterPosts(filter) {
+                document.querySelectorAll('#posts-section .filter-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.filter === filter);
+                });
+
+                document.querySelectorAll('.post-card').forEach(card => {
+                    const status = card.dataset.status;
+                    if (filter === 'all') {
+                        card.style.display = '';
+                    } else {
+                        card.style.display = status === filter ? '' : 'none';
+                    }
+                });
+            }
+
+            // Event filtering (client-side)
+            function filterEvents(filter) {
+                document.querySelectorAll('#events-section .filter-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.filter === filter);
+                });
+
+                const today = new Date().toISOString().split('T')[0];
+                document.querySelectorAll('.event-item').forEach(item => {
+                    const date = item.dataset.date;
+                    if (filter === 'all') {
+                        item.style.display = '';
+                    } else if (filter === 'upcoming') {
+                        item.style.display = date >= today ? '' : 'none';
+                    } else if (filter === 'past') {
+                        item.style.display = date < today ? '' : 'none';
+                    }
+                });
+            }
+
+            // Calculate upcoming events count on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                const today = new Date().toISOString().split('T')[0];
+                const upcomingCount = document.querySelectorAll('.event-item').length -
+                    document.querySelectorAll('.event-item.past').length;
+                document.getElementById('events-upcoming-count').textContent = upcomingCount;
+            });
+        </script>
     </div>
-
-    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
-
-    <div class="posts-table">
-        <table>
-            <thead>
-            <tr>
-                <th>Title</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="post : ${posts}">
-                <td th:text="${post.title}">Post Title</td>
-                <td>
-                            <span class="status"
-                                  th:classappend="${post.status.name() == 'PUBLISHED'} ? 'status-published' : 'status-draft'"
-                                  th:text="${post.status}">DRAFT</span>
-                </td>
-                <td th:text="${#temporals.format(post.createdAt, 'MMM dd, yyyy')}">Jan 01, 2024</td>
-                <td class="actions">
-                    <a th:href="@{/admin/posts/edit/{id}(id=${post.id})}" class="btn btn-small">Edit</a>
-
-                    <form th:if="${post.status.name() == 'DRAFT'}"
-                          th:action="@{/admin/posts/publish/{id}(id=${post.id})}"
-                          method="post" style="display:inline;">
-                        <button type="submit" class="btn btn-small btn-success">Publish</button>
-                    </form>
-
-                    <form th:action="@{/admin/posts/delete/{id}(id=${post.id})}"
-                          method="post" style="display:inline;"
-                          onsubmit="return confirm('Are you sure?');">
-                        <button type="submit" class="btn btn-small btn-danger">Delete</button>
-                    </form>
-                </td>
-            </tr>
-            <tr th:if="${#lists.isEmpty(posts)}">
-                <td colspan="4" class="empty-state">No posts yet. Create your first post!</td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
-</main>
 </body>
 </html>

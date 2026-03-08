@@ -1,11 +1,22 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-
-<header class="masthead">
-    <h1>Warp3</h1>
-    <p class="subtitle">Hackerspace · Differdange</p>
-    <p class="byline">by <a href="https://syn2cat.lu">syn2cat</a></p>
+<header>
+    <div sec:authorize="isAuthenticated()">
+        <button class="btn" id="admin-btn">
+            <a th:href="@{/admin}">ADMIN</a>
+        </button>
+    </div>
+    <div class="masthead">
+        <h1>Warp3</h1>
+        <p class="subtitle">Hackerspace · Differdange</p>
+        <p class="byline">by <a href="https://syn2cat.lu">syn2cat</a></p>
+    </div>
+    <nav class="site-nav">
+        <a th:href="@{/}" class="nav-link">Home</a>
+        <a th:href="@{/blog}" class="nav-link">Blog</a>
+        <a th:href="@{/events}" class="nav-link">Events</a>
+    </nav>
 </header>
 <!--
 <nav th:fragment="nav" class="navbar">

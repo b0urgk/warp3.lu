@@ -1,9 +1,15 @@
 :root {
     --bg: #1a1a1a;
+    --bg-light: #222;
+    --bg-lighter: #2a2a2a;
     --text: #c9c9c9;
     --text-dim: #777;
     --accent: #4a9;
     --accent-dim: #386;
     --open: #4a9;
     --closed: #a44;
+    --danger: #a44;
+    --danger-hover: #c55;
+    --warning: #a84;
+    --border: #333;
 }

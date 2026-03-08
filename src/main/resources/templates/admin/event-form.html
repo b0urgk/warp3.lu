@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layouts/admin}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+<div layout:fragment="content">
+    <div class="form-container">
+        <div class="form-header">
+            <h1 th:text="${event.id != null} ? 'Edit Event' : 'New Event'">New Event</h1>
+            <a th:href="@{/admin}" class="btn">← Back</a>
+        </div>
+
+        <form th:action="@{/admin/events/save}" method="post" th:object="${event}">
+            <input type="hidden" th:field="*{id}">
+
+            <div class="form-group">
+                <label class="form-label">Event Title</label>
+                <input type="text" class="form-input" th:field="*{title}" required placeholder="Event title...">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-textarea" th:field="*{description}" placeholder="Describe the event..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" th:field="*{allDay}" id="allDay" onchange="toggleAllDay()">
+                    <label for="allDay">All day event</label>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" id="startLabel">Start Date & Time</label>
+                    <input type="datetime-local" class="form-input" th:field="*{startTime}" id="startTime" required>
+                </div>
+                <div class="form-group" id="endGroup">
+                    <label class="form-label" id="endLabel">End Date & Time</label>
+                    <input type="datetime-local" class="form-input" th:field="*{endTime}" id="endTime" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Location</label>
+                <input type="text" class="form-input" th:field="*{location}" required placeholder="Event location...">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Link to Post (optional)</label>
+                <select class="form-select" name="linkedPostId">
+                    <option value="">-- No linked post --</option>
+                    <option th:each="post : ${posts}"
+                            th:value="${post.id}"
+                            th:text="${post.title}"
+                            th:selected="${event.linkedPost != null && event.linkedPost.id == post.id}">
+                        Post Title
+                    </option>
+                </select>
+                <div class="form-hint">Link this event to a blog post for more details</div>
+            </div>
+
+            <!-- Recurrence Section -->
+            <div class="form-section">
+                <div class="form-section-title">Recurrence</div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Repeat</label>
+                        <select class="form-select" th:field="*{recurrenceType}" id="recurrenceType" onchange="toggleRecurrenceFields()">
+                            <option value="NONE">No repeat</option>
+                            <option value="DAILY">Daily</option>
+                            <option value="WEEKLY">Weekly</option>
+                            <option value="MONTHLY">Monthly</option>
+                            <option value="YEARLY">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="intervalGroup">
+                        <label class="form-label">Every</label>
+                        <input type="number" class="form-input" th:field="*{recurrenceInterval}" min="1" placeholder="1">
+                        <div class="form-hint">e.g., every 2 weeks</div>
+                    </div>
+                </div>
+
+                <div class="form-group" id="endDateGroup">
+                    <label class="form-label">Repeat Until (optional)</label>
+                    <input type="datetime-local" class="form-input" th:field="*{recurrenceEndDate}">
+                    <div class="form-hint">Leave empty for indefinite recurrence</div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save Event</button>
+                <a th:href="@{/admin}" class="btn">Cancel</a>
+            </div>
+        </form>
+
+        <form th:if="${event.id != null}" th:action="@{/admin/events/delete/{id}(id=${event.id})}" method="post" class="form-actions" style="margin-top: 1rem;">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this event?')">Delete Event</button>
+        </form>
+    </div>
+
+    <script th:inline="javascript">
+        document.querySelector(`.tab[data-section="events"]`).classList.add('active');
+
+        function toggleRecurrenceFields() {
+            const recurrenceType = document.getElementById('recurrenceType').value;
+            const isRecurring = recurrenceType !== 'NONE';
+            document.getElementById('intervalGroup').style.display = isRecurring ? '' : 'none';
+            document.getElementById('endDateGroup').style.display = isRecurring ? '' : 'none';
+        }
+
+        function toggleAllDay() {
+            const allDay = document.getElementById('allDay').checked;
+            const startInput = document.getElementById('startTime');
+            const endInput = document.getElementById('endTime');
+            const endGroup = document.getElementById('endGroup');
+            const startLabel = document.getElementById('startLabel');
+
+            if (allDay) {
+                // Switch to date-only and hide end time
+                const startVal = startInput.value ? startInput.value.split('T')[0] : '';
+                startInput.type = 'date';
+                startInput.value = startVal;
+                startLabel.textContent = 'Date';
+                endGroup.style.display = 'none';
+                endInput.removeAttribute('required');
+            } else {
+                // Switch back to datetime-local and show end time
+                const startVal = startInput.value || '';
+                startInput.type = 'datetime-local';
+                if (startVal && !startVal.includes('T')) {
+                    startInput.value = startVal + 'T00:00';
+                }
+                startLabel.textContent = 'Start Date & Time';
+                endGroup.style.display = '';
+                endInput.setAttribute('required', '');
+            }
+        }
+
+        // On form submit, fill in end time for all-day events
+        document.querySelector('form').addEventListener('submit', function() {
+            const allDay = document.getElementById('allDay').checked;
+            if (allDay) {
+                const startInput = document.getElementById('startTime');
+                const endInput = document.getElementById('endTime');
+                const dateVal = startInput.value;
+                // Set start to beginning of day, end to end of day
+                startInput.type = 'datetime-local';
+                startInput.value = dateVal + 'T00:00';
+                endInput.value = dateVal + 'T23:59';
+            }
+        });
+
+        // Run on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleRecurrenceFields();
+            toggleAllDay();
+        });
+    </script>
+</div>
+</body>
+</html>
