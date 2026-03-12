@@ -6,6 +6,7 @@ import dev.bourg.warp3_lu.model.User;
 import dev.bourg.warp3_lu.repository.UserRepository;
 import dev.bourg.warp3_lu.service.EventService;
 import dev.bourg.warp3_lu.service.PostService;
+import dev.bourg.warp3_lu.service.SiteContentService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/admin")
@@ -24,13 +26,16 @@ public class AdminController {
     private final EventService eventService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SiteContentService siteContentService;
 
     public AdminController(PostService postService, EventService eventService,
-                           UserRepository userRepository, PasswordEncoder passwordEncoder) {
+                           UserRepository userRepository, PasswordEncoder passwordEncoder,
+                           SiteContentService siteContentService) {
         this.postService = postService;
         this.eventService = eventService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.siteContentService = siteContentService;
     }
 
     @GetMapping
@@ -38,6 +43,13 @@ public class AdminController {
         model.addAttribute("posts", postService.findAll());
         model.addAttribute("events", eventService.findUpcoming());
         model.addAttribute("users", userRepository.findAll());
+        Map<String, String> siteContent = siteContentService.getAll();
+        siteContent.putIfAbsent("home.status", "closed");
+        siteContent.putIfAbsent("home.what", "Community-operated space for tinkering, building, and sharing knowledge about technology.");
+        siteContent.putIfAbsent("home.where", "35 rue du Chemin de Fer\nDifferdange, Luxembourg");
+        siteContent.putIfAbsent("home.when", "Tuesdays 20:00 onwards\n+ whenever the door's open");
+        siteContent.putIfAbsent("home.links", "Wiki|https://wiki.syn2cat.lu\nGitHub|https://github.com/syn2cat\nContact|mailto:info@syn2cat.lu");
+        model.addAttribute("siteContent", siteContent);
         model.addAttribute("pageName", "dashboard");
         model.addAttribute("pageTitle", "Dashboard");
         return "admin/dashboard";
@@ -211,6 +223,18 @@ public class AdminController {
         }
         userRepository.deleteById(id);
         redirectAttributes.addFlashAttribute("message", "User deleted!");
+        return "redirect:/admin";
+    }
+
+    @PostMapping("/content/save")
+    public String saveContent(@RequestParam Map<String, String> params,
+                              RedirectAttributes redirectAttributes) {
+        params.forEach((key, value) -> {
+            if (key.startsWith("content.")) {
+                siteContentService.set(key.substring("content.".length()), value);
+            }
+        });
+        redirectAttributes.addFlashAttribute("message", "Content saved successfully");
         return "redirect:/admin";
     }
 }

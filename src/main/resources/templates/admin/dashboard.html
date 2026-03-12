@@ -198,6 +198,40 @@
             </div>
         </div>
 
+        <div id="content-section" class="section">
+            <div class="header">
+                <h1>Site Content</h1>
+            </div>
+
+            <form th:action="@{/admin/content/save}" method="post" class="content-form">
+                <div class="content-field">
+                    <label for="content-what">What</label>
+                    <textarea id="content-what" name="content.home.what" rows="3"
+                              th:text="${siteContent['home.what']}"></textarea>
+                </div>
+
+                <div class="content-field">
+                    <label for="content-where">Where</label>
+                    <textarea id="content-where" name="content.home.where" rows="2"
+                              th:text="${siteContent['home.where']}"></textarea>
+                </div>
+
+                <div class="content-field">
+                    <label for="content-when">When</label>
+                    <textarea id="content-when" name="content.home.when" rows="2"
+                              th:text="${siteContent['home.when']}"></textarea>
+                </div>
+
+                <div class="content-field">
+                    <label for="content-links">Links <span class="field-hint">one per line: Label|URL</span></label>
+                    <textarea id="content-links" name="content.home.links" rows="4"
+                              th:text="${siteContent['home.links']}"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save Content</button>
+            </form>
+        </div>
+
         <script th:inline="javascript">
             lucide.createIcons();
             document.querySelector(`.tab[data-section="posts"]`).classList.add('active');

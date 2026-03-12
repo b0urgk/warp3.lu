@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html layout:decorate="~{layouts/main}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<html xmlns:th="http://www.thymeleaf.org"
+      layout:decorate="~{layouts/main}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <body>
 <div layout:fragment="content">
     <div style="text-align: center;">
@@ -11,25 +13,27 @@
 
     <div class="block">
         <p class="block-title">What</p>
-        <p>Community-operated space for tinkering, building, and sharing knowledge about technology.</p>
+        <p th:text="${sc['home.what']}">Community-operated space for tinkering, building, and sharing knowledge about technology.</p>
     </div>
 
     <div class="block">
         <p class="block-title">Where</p>
-        <p>35 rue du Chemin de Fer<br>Differdange, Luxembourg</p>
+        <p th:utext="${sc['home.where']}">35 rue du Chemin de Fer<br>Differdange, Luxembourg</p>
     </div>
 
     <div class="block">
         <p class="block-title">When</p>
-        <p>Tuesdays 20:00 onwards<br>+ whenever the door's open</p>
+        <p th:utext="${sc['home.when']}">Tuesdays 20:00 onwards<br>+ whenever the door's open</p>
     </div>
 
     <div class="block">
         <p class="block-title">Links</p>
         <div class="links">
-            <a href="https://wiki.syn2cat.lu">Wiki</a>
-            <a href="https://github.com/syn2cat">GitHub</a>
-            <a href="mailto:info@syn2cat.lu">Contact</a>
+            <th:block th:each="line : ${sc['home.links'].split('\n')}">
+                <a th:if="${line.contains('|')}"
+                   th:href="${line.split('\|')[1].trim()}"
+                   th:text="${line.split('\|')[0].trim()}">Link</a>
+            </th:block>
         </div>
     </div>
 </div>

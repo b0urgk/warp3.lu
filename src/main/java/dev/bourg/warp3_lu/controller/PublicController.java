@@ -3,6 +3,7 @@ import dev.bourg.warp3_lu.model.Event;
 import dev.bourg.warp3_lu.model.Post;
 import dev.bourg.warp3_lu.service.EventService;
 import dev.bourg.warp3_lu.service.PostService;
+import dev.bourg.warp3_lu.service.SiteContentService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,15 +21,37 @@ public class PublicController {
 
     private final PostService postService;
     private final EventService eventService;
+    private final SiteContentService siteContentService;
 
-    public PublicController(PostService postService, EventService eventService) {
+    public PublicController(PostService postService, EventService eventService,
+                            SiteContentService siteContentService) {
         this.postService = postService;
         this.eventService = eventService;
+        this.siteContentService = siteContentService;
     }
 
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("posts", postService.findPublished());
+
+        Map<String, String> content = siteContentService.getAll();
+        Map<String, String> defaults = Map.of(
+                "home.status", "closed",
+                "home.what", "Community-operated space for tinkering, building, and sharing knowledge about technology.",
+                "home.where", "35 rue du Chemin de Fer<br>Differdange, Luxembourg",
+                "home.when", "Tuesdays 20:00 onwards<br>+ whenever the door's open",
+                "home.links", "Wiki|https://wiki.syn2cat.lu\nGitHub|https://github.com/syn2cat\nContact|mailto:info@syn2cat.lu"
+        );
+        defaults.forEach((k, v) -> content.putIfAbsent(k, v));
+
+        for (String key : List.of("home.where", "home.when")) {
+            String val = content.get(key);
+            if (val != null) {
+                content.put(key, val.replace("\n", "<br>"));
+            }
+        }
+
+        model.addAttribute("sc", content);
         model.addAttribute("pageTitle", "Home");
         model.addAttribute("pageName", "home");
 
