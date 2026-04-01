@@ -1,7 +1,9 @@
 package dev.bourg.warp3_lu.controller;
 import dev.bourg.warp3_lu.model.Event;
+import dev.bourg.warp3_lu.model.Page;
 import dev.bourg.warp3_lu.model.Post;
 import dev.bourg.warp3_lu.service.EventService;
+import dev.bourg.warp3_lu.service.PageService;
 import dev.bourg.warp3_lu.service.PostService;
 import dev.bourg.warp3_lu.service.SiteContentService;
 import org.springframework.stereotype.Controller;
@@ -21,12 +23,14 @@ public class PublicController {
 
     private final PostService postService;
     private final EventService eventService;
+    private final PageService pageService;
     private final SiteContentService siteContentService;
 
     public PublicController(PostService postService, EventService eventService,
-                            SiteContentService siteContentService) {
+                            PageService pageService, SiteContentService siteContentService) {
         this.postService = postService;
         this.eventService = eventService;
+        this.pageService = pageService;
         this.siteContentService = siteContentService;
     }
 
@@ -161,5 +165,20 @@ public class PublicController {
         model.addAttribute("pageTitle", post.getTitle());
         model.addAttribute("pageName", "post");
         return "public/post";
+    }
+
+    @GetMapping("/page/{slug}")
+    public String page(@PathVariable String slug, Model model) {
+        Page page = pageService.findBySlug(slug)
+                .orElseThrow(() -> new RuntimeException("Page not found"));
+
+        if (page.getStatus() != Page.Status.PUBLISHED) {
+            throw new RuntimeException("Page not found");
+        }
+
+        model.addAttribute("page", page);
+        model.addAttribute("pageTitle", page.getTitle());
+        model.addAttribute("pageName", "page");
+        return "public/page";
     }
 }

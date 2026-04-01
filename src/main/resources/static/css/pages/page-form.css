@@ -1,0 +1,160 @@
+/* =============================================
+   PAGE FORM - BLOCK BUILDER
+   ============================================= */
+
+.editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.editor-header h1 {
+    font-size: 1.25rem;
+    font-weight: normal;
+    letter-spacing: 0.05em;
+}
+
+.editor-meta {
+    margin-bottom: 1.5rem;
+}
+
+.editor-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Blocks section */
+.blocks-section {
+    margin-bottom: 1rem;
+}
+
+.blocks-label {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    margin-bottom: 0.75rem;
+}
+
+/* Block panel */
+.block-panel {
+    background: var(--bg-light);
+    border: 1px solid var(--border);
+    margin-bottom: 0.75rem;
+}
+
+.block-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+}
+
+.block-grip {
+    cursor: grab;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    user-select: none;
+}
+
+.block-grip:active {
+    cursor: grabbing;
+}
+
+.block-type-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    flex: 1;
+}
+
+.block-header-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.block-body {
+    padding: 0.75rem;
+}
+
+.block-fields .form-group {
+    margin-bottom: 0.75rem;
+}
+
+.block-fields .form-group:last-child {
+    margin-bottom: 0;
+}
+
+.block-fields label {
+    display: block;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    margin-bottom: 0.25rem;
+}
+
+.block-fields input[type="text"],
+.block-fields textarea {
+    width: 100%;
+    padding: 0.5rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    resize: vertical;
+}
+
+.block-fields input[type="text"]:focus,
+.block-fields textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+/* Columns editor */
+.columns-editor {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+/* Add block area */
+.add-block-area {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border: 1px dashed var(--border);
+    background: var(--bg-light);
+}
+
+.add-block-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+}
+
+/* SortableJS ghost style */
+.sortable-ghost {
+    opacity: 0.4;
+}
+
+@media (max-width: 600px) {
+    .columns-editor {
+        grid-template-columns: 1fr;
+    }
+
+    .add-block-area {
+        flex-wrap: wrap;
+    }
+}

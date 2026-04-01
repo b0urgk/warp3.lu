@@ -1,10 +1,9 @@
 package dev.bourg.warp3_lu.controller;
 
-import dev.bourg.warp3_lu.model.Event;
-import dev.bourg.warp3_lu.model.Post;
-import dev.bourg.warp3_lu.model.User;
+import dev.bourg.warp3_lu.model.*;
 import dev.bourg.warp3_lu.repository.UserRepository;
 import dev.bourg.warp3_lu.service.EventService;
+import dev.bourg.warp3_lu.service.PageService;
 import dev.bourg.warp3_lu.service.PostService;
 import dev.bourg.warp3_lu.service.SiteContentService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -24,15 +24,18 @@ public class AdminController {
 
     private final PostService postService;
     private final EventService eventService;
+    private final PageService pageService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final SiteContentService siteContentService;
 
     public AdminController(PostService postService, EventService eventService,
-                           UserRepository userRepository, PasswordEncoder passwordEncoder,
+                           PageService pageService, UserRepository userRepository,
+                           PasswordEncoder passwordEncoder,
                            SiteContentService siteContentService) {
         this.postService = postService;
         this.eventService = eventService;
+        this.pageService = pageService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.siteContentService = siteContentService;
@@ -42,6 +45,7 @@ public class AdminController {
     public String dashboard(Model model) {
         model.addAttribute("posts", postService.findAll());
         model.addAttribute("events", eventService.findUpcoming());
+        model.addAttribute("pages", pageService.findAll());
         model.addAttribute("users", userRepository.findAll());
         Map<String, String> siteContent = siteContentService.getAll();
         siteContent.putIfAbsent("home.status", "closed");
@@ -223,6 +227,112 @@ public class AdminController {
         }
         userRepository.deleteById(id);
         redirectAttributes.addFlashAttribute("message", "User deleted!");
+        return "redirect:/admin";
+    }
+
+    // ===================== PAGES =====================
+
+    @GetMapping("/pages/new")
+    public String newPage(Model model) {
+        model.addAttribute("page", new Page());
+        model.addAttribute("blockTypes", BlockType.values());
+        model.addAttribute("pageName", "page-form");
+        model.addAttribute("pageTitle", "New page");
+        return "admin/page-form";
+    }
+
+    @GetMapping("/pages/edit/{id}")
+    public String editPage(@PathVariable Long id, Model model) {
+        Page page = pageService.findById(id)
+                .orElseThrow(() -> new RuntimeException("Page not found"));
+        model.addAttribute("page", page);
+        model.addAttribute("blockTypes", BlockType.values());
+        model.addAttribute("pageName", "page-form");
+        model.addAttribute("pageTitle", "Edit page");
+        return "admin/page-form";
+    }
+
+    @PostMapping("/pages/save")
+    public String savePage(@RequestParam Map<String, String> params,
+                           @AuthenticationPrincipal UserDetails userDetails,
+                           RedirectAttributes redirectAttributes) {
+        Page page;
+        String idStr = params.get("id");
+        if (idStr != null && !idStr.isBlank()) {
+            try {
+                page = pageService.findById(Long.parseLong(idStr))
+                        .orElseThrow(() -> new RuntimeException("Page not found"));
+            } catch (NumberFormatException e) {
+                redirectAttributes.addFlashAttribute("message", "Invalid page ID");
+                return "redirect:/admin";
+            }
+        } else {
+            page = new Page();
+            User author = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            page.setAuthor(author);
+        }
+
+        String title = params.get("title");
+        if (title == null || title.isBlank()) {
+            redirectAttributes.addFlashAttribute("message", "Title is required");
+            return "redirect:/admin";
+        }
+        page.setTitle(title);
+
+        String slug = params.get("slug");
+        if (slug != null && !slug.isBlank()) {
+            page.setSlug(slug);
+        } else if (page.getId() == null) {
+            page.setSlug(null); // let @PrePersist generate it for new pages
+        }
+        // For existing pages with blank slug input, keep the existing slug
+
+        String statusStr = params.getOrDefault("status", "DRAFT");
+        try {
+            page.setStatus(Page.Status.valueOf(statusStr));
+        } catch (IllegalArgumentException e) {
+            page.setStatus(Page.Status.DRAFT);
+        }
+
+        // Parse blocks from indexed params: blocks[0].blockType, blocks[0].content, etc.
+        page.getBlocks().clear();
+        for (int i = 0; ; i++) {
+            String blockTypeStr = params.get("blocks[" + i + "].blockType");
+            if (blockTypeStr == null) break;
+
+            try {
+                PageBlock block = new PageBlock();
+                block.setBlockType(BlockType.valueOf(blockTypeStr));
+                block.setContent(params.getOrDefault("blocks[" + i + "].content", ""));
+                block.setContentSecondary(params.getOrDefault("blocks[" + i + "].contentSecondary", ""));
+                block.setImageUrl(params.getOrDefault("blocks[" + i + "].imageUrl", ""));
+                block.setAltText(params.getOrDefault("blocks[" + i + "].altText", ""));
+                page.getBlocks().add(block);
+            } catch (IllegalArgumentException e) {
+                // Skip blocks with invalid type
+            }
+        }
+
+        pageService.save(page);
+        redirectAttributes.addFlashAttribute("message", "Page saved successfully");
+        return "redirect:/admin";
+    }
+
+    @PostMapping("/pages/publish/{id}")
+    public String publishPage(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        Page page = pageService.findById(id)
+                .orElseThrow(() -> new RuntimeException("Page not found"));
+        page.publish();
+        pageService.save(page);
+        redirectAttributes.addFlashAttribute("message", "Page published");
+        return "redirect:/admin";
+    }
+
+    @PostMapping("/pages/delete/{id}")
+    public String deletePage(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        pageService.delete(id);
+        redirectAttributes.addFlashAttribute("message", "Page deleted!");
         return "redirect:/admin";
     }
 

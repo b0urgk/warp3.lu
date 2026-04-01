@@ -414,7 +414,44 @@
     border-color: var(--accent);
 }
 
-@media (max-width: 600px) {
+/* =============================================
+   PAGES LIST
+   ============================================= */
+.pages-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.page-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 1rem;
+    align-items: center;
+    background: var(--bg-light);
+    border: 1px solid var(--border);
+    padding: 1rem;
+}
+
+.page-name {
+    font-size: 0.95rem;
+}
+
+.page-slug {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+
+.page-blocks {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+}
+
+.page-actions {
+    display: flex;
+    gap: 0.35rem;
+}
+
 @media (max-width: 600px) {
     .stats {
         grid-template-columns: repeat(3, 1fr);

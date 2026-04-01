@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      layout:decorate="~{layouts/main}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <link rel="stylesheet" th:href="@{/css/pages/page.css}">
+</head>
+
+<main class="page-container" layout:fragment="content">
+
+    <h1 class="page-title" th:text="${page.title}">Page Title</h1>
+
+    <div class="page-blocks">
+        <div th:each="block : ${page.blocks}" th:switch="${block.blockType.name()}">
+
+            <!-- MARKDOWN -->
+            <div th:case="'MARKDOWN'" class="page-block block-markdown">
+                <div th:utext="${block.contentHtml}">Markdown content</div>
+            </div>
+
+            <!-- HERO -->
+            <div th:case="'HERO'" class="page-block block-hero"
+                 th:style="${block.imageUrl != null and !block.imageUrl.isEmpty()} ? 'background-image: url(' + ${block.imageUrl} + ')' : ''">
+                <h2 class="hero-heading" th:text="${block.content}">Heading</h2>
+                <p th:if="${block.contentSecondary != null and !block.contentSecondary.isEmpty()}"
+                   class="hero-subheading" th:text="${block.contentSecondary}">Subheading</p>
+            </div>
+
+            <!-- IMAGE -->
+            <div th:case="'IMAGE'" class="page-block block-image">
+                <img th:src="${block.imageUrl}" th:alt="${block.altText}" />
+                <p th:if="${block.contentSecondary != null and !block.contentSecondary.isEmpty()}"
+                   class="image-caption" th:text="${block.contentSecondary}">Caption</p>
+            </div>
+
+            <!-- HTML -->
+            <div th:case="'HTML'" class="page-block block-html">
+                <div th:utext="${block.content}">Raw HTML</div>
+            </div>
+
+            <!-- COLUMNS -->
+            <div th:case="'COLUMNS'" class="page-block block-columns">
+                <div class="column" th:utext="${block.contentHtml}">Left column</div>
+                <div class="column" th:utext="${block.contentSecondaryHtml}">Right column</div>
+            </div>
+
+        </div>
+    </div>
+
+</main>
+
+</html>

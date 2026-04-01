@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      layout:decorate="~{layouts/admin}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<body>
+<div layout:fragment="content">
+
+    <div class="editor-header">
+        <h1 th:text="${page.id != null ? 'Edit Page' : 'New Page'}">New Page</h1>
+        <a th:href="@{/admin}" class="btn">← Back</a>
+    </div>
+
+    <form th:action="@{/admin/pages/save}" method="post" class="editor-form" id="page-form">
+        <input type="hidden" name="id" th:value="${page.id}">
+
+        <!-- Title & Meta -->
+        <div class="editor-meta">
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" name="title" th:value="${page.title}" required placeholder="Page title...">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Slug</label>
+                    <input type="text" name="slug" th:value="${page.slug}" placeholder="auto-generated-from-title">
+                    <span class="form-hint">Leave empty to auto-generate</span>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select name="status">
+                        <option value="DRAFT" th:selected="${page.status?.name() == 'DRAFT'}">Draft</option>
+                        <option value="PUBLISHED" th:selected="${page.status?.name() == 'PUBLISHED'}">Published</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Blocks -->
+        <div class="blocks-section">
+            <label class="blocks-label">Content Blocks</label>
+            <div id="blocks-container">
+                <div th:each="block, iter : ${page.blocks}" class="block-panel" th:data-index="${iter.index}">
+                    <div class="block-header">
+                        <span class="block-grip">&#9776;</span>
+                        <span class="block-type-label" th:text="${block.blockType}">MARKDOWN</span>
+                        <div class="block-header-actions">
+                            <button type="button" class="btn btn-small" onclick="moveBlock(this, -1)">&#9650;</button>
+                            <button type="button" class="btn btn-small" onclick="moveBlock(this, 1)">&#9660;</button>
+                            <button type="button" class="btn btn-small btn-danger" onclick="removeBlock(this)">&#10005;</button>
+                        </div>
+                    </div>
+                    <div class="block-body">
+                        <input type="hidden" th:name="'blocks[' + ${iter.index} + '].blockType'" th:value="${block.blockType}">
+
+                        <!-- MARKDOWN -->
+                        <div th:if="${block.blockType.name() == 'MARKDOWN'}" class="block-fields">
+                            <div class="form-group">
+                                <label>Markdown Content</label>
+                                <textarea th:name="'blocks[' + ${iter.index} + '].content'" rows="8" th:text="${block.content}"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- HERO -->
+                        <div th:if="${block.blockType.name() == 'HERO'}" class="block-fields">
+                            <div class="form-group">
+                                <label>Heading</label>
+                                <input type="text" th:name="'blocks[' + ${iter.index} + '].content'" th:value="${block.content}">
+                            </div>
+                            <div class="form-group">
+                                <label>Subheading</label>
+                                <input type="text" th:name="'blocks[' + ${iter.index} + '].contentSecondary'" th:value="${block.contentSecondary}">
+                            </div>
+                            <div class="form-group">
+                                <label>Background Image URL</label>
+                                <input type="text" th:name="'blocks[' + ${iter.index} + '].imageUrl'" th:value="${block.imageUrl}">
+                            </div>
+                        </div>
+
+                        <!-- IMAGE -->
+                        <div th:if="${block.blockType.name() == 'IMAGE'}" class="block-fields">
+                            <div class="form-group">
+                                <label>Image URL</label>
+                                <input type="text" th:name="'blocks[' + ${iter.index} + '].imageUrl'" th:value="${block.imageUrl}">
+                            </div>
+                            <div class="form-group">
+                                <label>Alt Text</label>
+                                <input type="text" th:name="'blocks[' + ${iter.index} + '].altText'" th:value="${block.altText}">
+                            </div>
+                            <div class="form-group">
+                                <label>Caption</label>
+                                <input type="text" th:name="'blocks[' + ${iter.index} + '].contentSecondary'" th:value="${block.contentSecondary}">
+                            </div>
+                        </div>
+
+                        <!-- HTML -->
+                        <div th:if="${block.blockType.name() == 'HTML'}" class="block-fields">
+                            <div class="form-group">
+                                <label>Raw HTML</label>
+                                <textarea th:name="'blocks[' + ${iter.index} + '].content'" rows="8" th:text="${block.content}"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- COLUMNS -->
+                        <div th:if="${block.blockType.name() == 'COLUMNS'}" class="block-fields">
+                            <div class="columns-editor">
+                                <div class="form-group">
+                                    <label>Left Column (Markdown)</label>
+                                    <textarea th:name="'blocks[' + ${iter.index} + '].content'" rows="6" th:text="${block.content}"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>Right Column (Markdown)</label>
+                                    <textarea th:name="'blocks[' + ${iter.index} + '].contentSecondary'" rows="6" th:text="${block.contentSecondary}"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="add-block-area">
+                <span class="add-block-label">Add block:</span>
+                <button type="button" class="btn btn-small" onclick="addBlock('MARKDOWN')">Markdown</button>
+                <button type="button" class="btn btn-small" onclick="addBlock('HERO')">Hero</button>
+                <button type="button" class="btn btn-small" onclick="addBlock('IMAGE')">Image</button>
+                <button type="button" class="btn btn-small" onclick="addBlock('HTML')">HTML</button>
+                <button type="button" class="btn btn-small" onclick="addBlock('COLUMNS')">Columns</button>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save Page</button>
+            <a th:href="@{/admin}" class="btn">Cancel</a>
+        </div>
+    </form>
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script th:inline="none">
+        lucide.createIcons();
+        document.querySelector('.tab[data-section="pages"]')?.classList.add('active');
+
+        const container = document.getElementById('blocks-container');
+
+        // Initialize SortableJS for drag-and-drop reordering
+        new Sortable(container, {
+            handle: '.block-grip',
+            animation: 150,
+            onEnd: function() {
+                reindexBlocks();
+            }
+        });
+
+        function getBlockFieldsHtml(type, idx) {
+            const prefix = 'blocks[' + idx + ']';
+            let html = '<input type="hidden" name="' + prefix + '.blockType" value="' + type + '">';
+
+            switch (type) {
+                case 'MARKDOWN':
+                    html += '<div class="block-fields"><div class="form-group">' +
+                        '<label>Markdown Content</label>' +
+                        '<textarea name="' + prefix + '.content" rows="8"></textarea>' +
+                        '</div></div>';
+                    break;
+                case 'HERO':
+                    html += '<div class="block-fields">' +
+                        '<div class="form-group"><label>Heading</label><input type="text" name="' + prefix + '.content"></div>' +
+                        '<div class="form-group"><label>Subheading</label><input type="text" name="' + prefix + '.contentSecondary"></div>' +
+                        '<div class="form-group"><label>Background Image URL</label><input type="text" name="' + prefix + '.imageUrl"></div>' +
+                        '</div>';
+                    break;
+                case 'IMAGE':
+                    html += '<div class="block-fields">' +
+                        '<div class="form-group"><label>Image URL</label><input type="text" name="' + prefix + '.imageUrl"></div>' +
+                        '<div class="form-group"><label>Alt Text</label><input type="text" name="' + prefix + '.altText"></div>' +
+                        '<div class="form-group"><label>Caption</label><input type="text" name="' + prefix + '.contentSecondary"></div>' +
+                        '</div>';
+                    break;
+                case 'HTML':
+                    html += '<div class="block-fields"><div class="form-group">' +
+                        '<label>Raw HTML</label>' +
+                        '<textarea name="' + prefix + '.content" rows="8"></textarea>' +
+                        '</div></div>';
+                    break;
+                case 'COLUMNS':
+                    html += '<div class="block-fields"><div class="columns-editor">' +
+                        '<div class="form-group"><label>Left Column (Markdown)</label><textarea name="' + prefix + '.content" rows="6"></textarea></div>' +
+                        '<div class="form-group"><label>Right Column (Markdown)</label><textarea name="' + prefix + '.contentSecondary" rows="6"></textarea></div>' +
+                        '</div></div>';
+                    break;
+            }
+            return html;
+        }
+
+        function addBlock(type) {
+            const idx = container.children.length;
+            const panel = document.createElement('div');
+            panel.className = 'block-panel';
+            panel.dataset.index = idx;
+            panel.innerHTML =
+                '<div class="block-header">' +
+                    '<span class="block-grip">&#9776;</span>' +
+                    '<span class="block-type-label">' + type + '</span>' +
+                    '<div class="block-header-actions">' +
+                        '<button type="button" class="btn btn-small" onclick="moveBlock(this, -1)">&#9650;</button>' +
+                        '<button type="button" class="btn btn-small" onclick="moveBlock(this, 1)">&#9660;</button>' +
+                        '<button type="button" class="btn btn-small btn-danger" onclick="removeBlock(this)">&#10005;</button>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="block-body">' + getBlockFieldsHtml(type, idx) + '</div>';
+            container.appendChild(panel);
+        }
+
+        function removeBlock(btn) {
+            const panel = btn.closest('.block-panel');
+            panel.remove();
+            reindexBlocks();
+        }
+
+        function moveBlock(btn, direction) {
+            const panel = btn.closest('.block-panel');
+            if (direction === -1 && panel.previousElementSibling) {
+                container.insertBefore(panel, panel.previousElementSibling);
+            } else if (direction === 1 && panel.nextElementSibling) {
+                container.insertBefore(panel.nextElementSibling, panel);
+            }
+            reindexBlocks();
+        }
+
+        function reindexBlocks() {
+            const panels = container.querySelectorAll('.block-panel');
+            panels.forEach((panel, idx) => {
+                panel.dataset.index = idx;
+                // Update all input/textarea/select name attributes
+                panel.querySelectorAll('[name]').forEach(el => {
+                    el.name = el.name.replace(/blocks\[\d+\]/, 'blocks[' + idx + ']');
+                });
+            });
+        }
+    </script>
+</div>
+</body>
+</html>
