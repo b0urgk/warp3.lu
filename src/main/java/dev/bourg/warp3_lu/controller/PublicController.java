@@ -39,13 +39,15 @@ public class PublicController {
         model.addAttribute("posts", postService.findPublished());
 
         Map<String, String> content = siteContentService.getAll();
-        Map<String, String> defaults = Map.of(
-                "home.status", "closed",
-                "home.what", "Community-operated space for tinkering, building, and sharing knowledge about technology.",
-                "home.where", "35 rue du Chemin de Fer<br>Differdange, Luxembourg",
-                "home.when", "Tuesdays 20:00 onwards<br>+ whenever the door's open",
-                "home.links", "Wiki|https://wiki.syn2cat.lu\nGitHub|https://github.com/syn2cat\nContact|mailto:info@syn2cat.lu"
-        );
+        Map<String, String> defaults = new HashMap<>();
+        defaults.put("home.status", "closed");
+        defaults.put("home.what", "Community-operated space for tinkering, building, and sharing knowledge about technology.");
+        defaults.put("home.where", "35 rue du Chemin de Fer<br>Differdange, Luxembourg");
+        defaults.put("home.when", "Tuesdays 20:00 onwards<br>+ whenever the door's open");
+        defaults.put("home.links", "Wiki|https://wiki.syn2cat.lu\nGitHub|https://github.com/syn2cat\nContact|mailto:info@syn2cat.lu");
+        defaults.put("home.what.links", "");
+        defaults.put("home.where.links", "");
+        defaults.put("home.when.links", "");
         defaults.forEach((k, v) -> content.putIfAbsent(k, v));
 
         for (String key : List.of("home.where", "home.when")) {

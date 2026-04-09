@@ -53,6 +53,9 @@ public class AdminController {
         siteContent.putIfAbsent("home.where", "35 rue du Chemin de Fer\nDifferdange, Luxembourg");
         siteContent.putIfAbsent("home.when", "Tuesdays 20:00 onwards\n+ whenever the door's open");
         siteContent.putIfAbsent("home.links", "Wiki|https://wiki.syn2cat.lu\nGitHub|https://github.com/syn2cat\nContact|mailto:info@syn2cat.lu");
+        siteContent.putIfAbsent("home.what.links", "");
+        siteContent.putIfAbsent("home.where.links", "");
+        siteContent.putIfAbsent("home.when.links", "");
         model.addAttribute("siteContent", siteContent);
         model.addAttribute("pageName", "dashboard");
         model.addAttribute("pageTitle", "Dashboard");

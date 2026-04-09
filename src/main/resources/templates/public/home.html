@@ -14,16 +14,37 @@
     <div class="block">
         <p class="block-title">What</p>
         <p th:text="${sc['home.what']}">Community-operated space for tinkering, building, and sharing knowledge about technology.</p>
+        <div class="links" th:if="${sc['home.what.links'] != null and !sc['home.what.links'].isEmpty()}">
+            <th:block th:each="line : ${sc['home.what.links'].split('\n')}">
+                <a th:if="${line.contains('|')}"
+                   th:href="${line.split('\|')[1].trim()}"
+                   th:text="${line.split('\|')[0].trim()}">Link</a>
+            </th:block>
+        </div>
     </div>
 
     <div class="block">
         <p class="block-title">Where</p>
         <p th:utext="${sc['home.where']}">35 rue du Chemin de Fer<br>Differdange, Luxembourg</p>
+        <div class="links" th:if="${sc['home.where.links'] != null and !sc['home.where.links'].isEmpty()}">
+            <th:block th:each="line : ${sc['home.where.links'].split('\n')}">
+                <a th:if="${line.contains('|')}"
+                   th:href="${line.split('\|')[1].trim()}"
+                   th:text="${line.split('\|')[0].trim()}">Link</a>
+            </th:block>
+        </div>
     </div>
 
     <div class="block">
         <p class="block-title">When</p>
         <p th:utext="${sc['home.when']}">Tuesdays 20:00 onwards<br>+ whenever the door's open</p>
+        <div class="links" th:if="${sc['home.when.links'] != null and !sc['home.when.links'].isEmpty()}">
+            <th:block th:each="line : ${sc['home.when.links'].split('\n')}">
+                <a th:if="${line.contains('|')}"
+                   th:href="${line.split('\|')[1].trim()}"
+                   th:text="${line.split('\|')[0].trim()}">Link</a>
+            </th:block>
+        </div>
     </div>
 
     <div class="block">

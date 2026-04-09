@@ -267,15 +267,33 @@
                 </div>
 
                 <div class="content-field">
+                    <label for="content-what-links">What — Links <span class="field-hint">one per line: Label|URL</span></label>
+                    <textarea id="content-what-links" name="content.home.what.links" rows="3"
+                              th:text="${siteContent['home.what.links']}"></textarea>
+                </div>
+
+                <div class="content-field">
                     <label for="content-where">Where</label>
                     <textarea id="content-where" name="content.home.where" rows="2"
                               th:text="${siteContent['home.where']}"></textarea>
                 </div>
 
                 <div class="content-field">
+                    <label for="content-where-links">Where — Links <span class="field-hint">one per line: Label|URL</span></label>
+                    <textarea id="content-where-links" name="content.home.where.links" rows="3"
+                              th:text="${siteContent['home.where.links']}"></textarea>
+                </div>
+
+                <div class="content-field">
                     <label for="content-when">When</label>
                     <textarea id="content-when" name="content.home.when" rows="2"
                               th:text="${siteContent['home.when']}"></textarea>
+                </div>
+
+                <div class="content-field">
+                    <label for="content-when-links">When — Links <span class="field-hint">one per line: Label|URL</span></label>
+                    <textarea id="content-when-links" name="content.home.when.links" rows="3"
+                              th:text="${siteContent['home.when.links']}"></textarea>
                 </div>
 
                 <div class="content-field">
