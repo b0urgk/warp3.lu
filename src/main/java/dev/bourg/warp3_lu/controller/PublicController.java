@@ -5,9 +5,13 @@ import dev.bourg.warp3_lu.model.Page;
 import dev.bourg.warp3_lu.model.Post;
 import dev.bourg.warp3_lu.service.EventService;
 import dev.bourg.warp3_lu.service.ExternalEventService;
+import dev.bourg.warp3_lu.service.ICalService;
 import dev.bourg.warp3_lu.service.PageService;
 import dev.bourg.warp3_lu.service.PostService;
 import dev.bourg.warp3_lu.service.SiteContentService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,15 +30,17 @@ public class PublicController {
     private final PostService postService;
     private final EventService eventService;
     private final ExternalEventService externalEventService;
+    private final ICalService iCalService;
     private final PageService pageService;
     private final SiteContentService siteContentService;
 
     public PublicController(PostService postService, EventService eventService,
-                            ExternalEventService externalEventService,
+                            ExternalEventService externalEventService, ICalService iCalService,
                             PageService pageService, SiteContentService siteContentService) {
         this.postService = postService;
         this.eventService = eventService;
         this.externalEventService = externalEventService;
+        this.iCalService = iCalService;
         this.pageService = pageService;
         this.siteContentService = siteContentService;
     }
@@ -80,6 +86,7 @@ public class PublicController {
     @GetMapping({"/events", "/events/"})
     public String events(@RequestParam(required = false) Integer year,
                          @RequestParam(required = false) Integer month,
+                         jakarta.servlet.http.HttpServletRequest request,
                          Model model) {
         LocalDate today = LocalDate.now();
         if (year == null || month == null) {
@@ -169,9 +176,36 @@ public class PublicController {
         model.addAttribute("prevMonth", prev.getMonthValue());
         model.addAttribute("nextYear", next.getYear());
         model.addAttribute("nextMonth", next.getMonthValue());
+        // Build webcal:// subscribe URL
+        String host = request.getServerName();
+        int port = request.getServerPort();
+        String portSuffix = (port == 80 || port == 443) ? "" : ":" + port;
+        model.addAttribute("webcalUrl", "webcal://" + host + portSuffix + "/events/feed.ics");
+
         model.addAttribute("pageTitle", "Events");
         model.addAttribute("pageName", "events");
         return "public/events";
+    }
+
+    @GetMapping("/events/feed.ics")
+    public ResponseEntity<byte[]> eventsFeed() {
+        List<Event> localEvents = eventService.findAll();
+        List<CalendarEvent> allEvents = new ArrayList<>();
+
+        for (Event e : localEvents) {
+            String postSlug = (e.getLinkedPost() != null) ? e.getLinkedPost().getSlug() : null;
+            allEvents.add(CalendarEvent.fromLocal(
+                    e.getTitle(), e.getDescription(), e.getLocation(),
+                    e.getStartTime(), e.getEndTime(), e.isAllDay(), postSlug));
+        }
+        allEvents.addAll(externalEventService.fetchAll());
+        allEvents.sort(Comparator.comparing(CalendarEvent::getStartTime));
+
+        String ical = iCalService.generateFeed(allEvents);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"warp3-events.ics\"")
+                .contentType(MediaType.parseMediaType("text/calendar; charset=UTF-8"))
+                .body(ical.getBytes(java.nio.charset.StandardCharsets.UTF_8));
     }
 
     @GetMapping("/blog/{slug}")

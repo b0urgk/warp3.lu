@@ -39,6 +39,10 @@
         </th:block>
     </div>
 
+    <div class="calendar-actions">
+        <a th:href="${webcalUrl}" class="cal-subscribe-btn">Subscribe to calendar</a>
+    </div>
+
     <div th:if="${#lists.isEmpty(monthEvents)}" class="events-empty">
         <p>No events this month.</p>
     </div>
@@ -47,7 +51,12 @@
         <h3 class="events-list-heading">Events this month</h3>
         <article th:each="event : ${monthEvents}"
                  class="event-item"
-                 th:classappend="${event.external ? ' external' : ''}">
+                 th:classappend="${event.external ? ' external' : ''}"
+                 th:attr="data-title=${event.title},
+                          data-start=${#temporals.format(event.startTime, 'yyyyMMdd''T''HHmmss')},
+                          data-end=${#temporals.format(event.endTime, 'yyyyMMdd''T''HHmmss')},
+                          data-location=${event.location},
+                          data-description=${event.description}">
             <time class="event-date">
                 <span class="event-day" th:text="${#temporals.format(event.startTime, 'dd')}">08</span>
                 <span class="event-month" th:text="${#temporals.format(event.startTime, 'MMM')}">Mar</span>
@@ -65,11 +74,91 @@
                 </div>
                 <p th:if="${event.subtitle}" class="event-subtitle" th:text="${event.subtitle}">Subtitle</p>
                 <p th:if="${event.description}" class="event-description" th:text="${event.description}">Description...</p>
-                <a th:if="${!event.external && event.linkedPostSlug != null}" th:href="@{/blog/{slug}(slug=${event.linkedPostSlug})}" class="event-link">Read more →</a>
-                <a th:if="${event.external && event.wikiUrl != null}" th:href="${event.wikiUrl}" target="_blank" class="event-link">View on wiki →</a>
+                <div class="event-actions">
+                    <a th:if="${!event.external && event.linkedPostSlug != null}" th:href="@{/blog/{slug}(slug=${event.linkedPostSlug})}" class="event-link">Read more &rarr;</a>
+                    <a th:if="${event.external && event.wikiUrl != null}" th:href="${event.wikiUrl}" target="_blank" class="event-link">View on wiki &rarr;</a>
+                    <div class="cal-dropdown">
+                        <button type="button" class="add-to-cal-btn" onclick="toggleCalMenu(this)">+ Add to calendar</button>
+                        <div class="cal-menu">
+                            <a href="#" onclick="addToGoogle(this); return false;">Google Calendar</a>
+                            <a href="#" onclick="downloadIcs(this); return false;">Other (Outlook, Apple, ...)</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </article>
     </div>
+
+    <script>
+        function toggleCalMenu(btn) {
+            var menu = btn.nextElementSibling;
+            // close all other open menus
+            document.querySelectorAll('.cal-menu.open').forEach(function(m) {
+                if (m !== menu) m.classList.remove('open');
+            });
+            menu.classList.toggle('open');
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.cal-dropdown')) {
+                document.querySelectorAll('.cal-menu.open').forEach(function(m) {
+                    m.classList.remove('open');
+                });
+            }
+        });
+
+        function getEventData(el) {
+            var item = el.closest('.event-item');
+            return {
+                title: item.dataset.title || '',
+                start: item.dataset.start || '',
+                end: item.dataset.end || '',
+                location: item.dataset.location || '',
+                description: item.dataset.description || ''
+            };
+        }
+
+        function addToGoogle(el) {
+            var d = getEventData(el);
+            var url = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+                + '&text=' + encodeURIComponent(d.title)
+                + '&dates=' + d.start + '/' + d.end
+                + '&location=' + encodeURIComponent(d.location)
+                + '&details=' + encodeURIComponent(d.description);
+            window.open(url, '_blank');
+        }
+
+        function downloadIcs(el) {
+            var d = getEventData(el);
+            var uid = d.start + '-' + d.title.replace(/\s+/g, '-').toLowerCase() + '@warp3.lu';
+            var ics = [
+                'BEGIN:VCALENDAR',
+                'VERSION:2.0',
+                'PRODID:-//warp3.lu//Events//EN',
+                'BEGIN:VEVENT',
+                'UID:' + uid,
+                'DTSTART:' + d.start,
+                'DTEND:' + d.end,
+                'SUMMARY:' + escIcal(d.title),
+                d.location ? 'LOCATION:' + escIcal(d.location) : '',
+                d.description ? 'DESCRIPTION:' + escIcal(d.description) : '',
+                'END:VEVENT',
+                'END:VCALENDAR'
+            ].filter(Boolean).join('\r\n') + '\r\n';
+
+            var blob = new Blob([ics], {type: 'text/calendar;charset=utf-8'});
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = d.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.ics';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function escIcal(s) {
+            return s.replace(/\\/g, '\\\\').replace(/,/g, '\\,').replace(/;/g, '\\;').replace(/\n/g, '\\n');
+        }
+    </script>
 
 </main>
 
