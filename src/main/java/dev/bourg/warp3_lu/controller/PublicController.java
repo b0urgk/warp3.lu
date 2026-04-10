@@ -1,8 +1,10 @@
 package dev.bourg.warp3_lu.controller;
+import dev.bourg.warp3_lu.dto.CalendarEvent;
 import dev.bourg.warp3_lu.model.Event;
 import dev.bourg.warp3_lu.model.Page;
 import dev.bourg.warp3_lu.model.Post;
 import dev.bourg.warp3_lu.service.EventService;
+import dev.bourg.warp3_lu.service.ExternalEventService;
 import dev.bourg.warp3_lu.service.PageService;
 import dev.bourg.warp3_lu.service.PostService;
 import dev.bourg.warp3_lu.service.SiteContentService;
@@ -23,13 +25,16 @@ public class PublicController {
 
     private final PostService postService;
     private final EventService eventService;
+    private final ExternalEventService externalEventService;
     private final PageService pageService;
     private final SiteContentService siteContentService;
 
     public PublicController(PostService postService, EventService eventService,
+                            ExternalEventService externalEventService,
                             PageService pageService, SiteContentService siteContentService) {
         this.postService = postService;
         this.eventService = eventService;
+        this.externalEventService = externalEventService;
         this.pageService = pageService;
         this.siteContentService = siteContentService;
     }
@@ -86,9 +91,24 @@ public class PublicController {
         YearMonth prev = ym.minusMonths(1);
         YearMonth next = ym.plusMonths(1);
 
-        List<Event> monthEvents = eventService.findByMonth(year, month);
-        Map<Integer, List<Event>> eventsByDay = new HashMap<>();
-        for (Event e : monthEvents) {
+        // Merge local and external events into CalendarEvent list
+        List<Event> localEvents = eventService.findByMonth(year, month);
+        List<CalendarEvent> allEvents = new ArrayList<>();
+
+        for (Event e : localEvents) {
+            String postSlug = (e.getLinkedPost() != null) ? e.getLinkedPost().getSlug() : null;
+            allEvents.add(CalendarEvent.fromLocal(
+                    e.getTitle(), e.getDescription(), e.getLocation(),
+                    e.getStartTime(), e.getEndTime(), e.isAllDay(), postSlug));
+        }
+
+        List<CalendarEvent> externalEvents = externalEventService.findByMonth(year, month);
+        allEvents.addAll(externalEvents);
+        allEvents.sort(Comparator.comparing(CalendarEvent::getStartTime));
+
+        // Build calendar grid using CalendarEvent
+        Map<Integer, List<CalendarEvent>> eventsByDay = new HashMap<>();
+        for (CalendarEvent e : allEvents) {
             int day = e.getStartTime().getDayOfMonth();
             eventsByDay.computeIfAbsent(day, k -> new ArrayList<>()).add(e);
         }
@@ -114,7 +134,7 @@ public class PublicController {
 
         for (int d = 1; d <= daysInMonth; d++) {
             LocalDate date = ym.atDay(d);
-            List<Event> dayEvents = eventsByDay.getOrDefault(d, List.of());
+            List<CalendarEvent> dayEvents = eventsByDay.getOrDefault(d, List.of());
             currentWeek.add(Map.of(
                     "dayOfMonth", d,
                     "isToday", date.equals(today),
@@ -143,7 +163,7 @@ public class PublicController {
         String monthLabel = ym.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH) + " " + year;
 
         model.addAttribute("weeks", weeks);
-        model.addAttribute("monthEvents", monthEvents);
+        model.addAttribute("monthEvents", allEvents);
         model.addAttribute("monthLabel", monthLabel);
         model.addAttribute("prevYear", prev.getYear());
         model.addAttribute("prevMonth", prev.getMonthValue());
