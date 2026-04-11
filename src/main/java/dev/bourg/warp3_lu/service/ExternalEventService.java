@@ -12,7 +12,7 @@ import org.springframework.web.client.RestClient;
 import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -124,9 +124,11 @@ public class ExternalEventService {
         if (node == null || !node.isArray() || node.isEmpty()) return null;
         try {
             long epochSeconds = Long.parseLong(node.get(0).asText());
+            // MediaWiki stores the entered local time as if it were UTC,
+            // so parsing as UTC recovers the intended wall-clock time.
             return LocalDateTime.ofInstant(
                     Instant.ofEpochSecond(epochSeconds),
-                    ZoneId.of("Europe/Luxembourg"));
+                    ZoneOffset.UTC);
         } catch (NumberFormatException e) {
             return null;
         }
