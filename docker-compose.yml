@@ -4,6 +4,7 @@ services:
     ports:
       - "8080:8080"
     environment:
+      TZ: Europe/Luxembourg
       DATABASE_URL: jdbc:postgresql://db:5432/warp3
       DATABASE_USER: warp3
       DATABASE_PASSWORD: warp3
