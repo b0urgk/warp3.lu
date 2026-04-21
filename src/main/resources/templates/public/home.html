@@ -5,9 +5,9 @@
 <body>
 <div layout:fragment="content">
     <div style="text-align: center;">
-        <div class="status-badge closed">
+        <div class="status-badge" th:classappend="${sc['home.status'] == 'open'} ? 'open' : 'closed'">
             <span class="status-dot"></span>
-            <span class="status-text">Closed</span>
+            <span class="status-text" th:text="${sc['home.status'] == 'open'} ? 'Open' : 'Closed'">Closed</span>
         </div>
     </div>
 

@@ -19,6 +19,7 @@ public class SecurityConfig {
                         .requestMatchers("/", "/blog", "/blog/**", "/events", "/events/**", "/page/**").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/webhook/**").permitAll()
                         .requestMatchers("/login").permitAll()  // Add this line explicitly
                         // Admin pages - must be logged in
                         .requestMatchers("/admin/**").authenticated()
@@ -35,7 +36,7 @@ public class SecurityConfig {
                 )
                 //Needed for H2 console to work
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/h2-console/**")
+                        .ignoringRequestMatchers("/h2-console/**", "/webhook/**")
                 )
                 .headers(headers -> headers
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
