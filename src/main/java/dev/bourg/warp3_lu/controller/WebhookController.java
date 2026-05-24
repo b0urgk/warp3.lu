@@ -10,6 +10,15 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.Set;
+
 @RestController
 @RequestMapping("/webhook/space")
 public class WebhookController {
@@ -27,22 +36,21 @@ public class WebhookController {
     }
 
     @PostMapping("/open")
-    public ResponseEntity<String> open(@RequestHeader(value = "X-Webhook-Token", required = false) String token) {
+    public ResponseEntity<String> open(@RequestHeader(value = "X-Webhook-Token", required = false) String token) throws Exception {
         if (!authorized(token)) {
             return ResponseEntity.status(401).body("unauthorized");
         }
-        siteContentService.set(STATUS_KEY, "open");
-        log.info("Space status set to open via webhook");
+        setSpaceStatus("open");
         return ResponseEntity.ok("open");
     }
 
     @PostMapping("/close")
-    public ResponseEntity<String> close(@RequestHeader(value = "X-Webhook-Token", required = false) String token) {
+    public ResponseEntity<String> close(@RequestHeader(value = "X-Webhook-Token", required = false) String token) throws Exception{
         if (!authorized(token)) {
             return ResponseEntity.status(401).body("unauthorized");
         }
-        siteContentService.set(STATUS_KEY, "closed");
-        log.info("Space status set to closed via webhook");
+
+        setSpaceStatus("closed");
         return ResponseEntity.ok("closed");
     }
 
@@ -52,6 +60,43 @@ public class WebhookController {
             return false;
         }
         return token != null && constantTimeEquals(secret, token);
+    }
+
+    private boolean setSpaceStatus(String state) throws Exception{
+        if (!Set.of("open", "closed").contains(state)) return false;
+
+        siteContentService.set(STATUS_KEY, state);
+        long unixTimestamp = Instant.now().getEpochSecond();
+
+        String apiKey = System.getenv("SPACE_API_KEY");
+        if (apiKey == null || apiKey.isBlank()) {
+            log.error("SPACE_API_KEY is not configured");
+            return false;
+        }
+        String sensorsJson = String.format(
+                "{\"state\":{\"open\":%s,\"lastchange\":%d}}",
+                state.equals("open"),
+                unixTimestamp
+        );
+
+        String formData =
+                "key=" + URLEncoder.encode(apiKey, StandardCharsets.UTF_8) +
+                        "&sensors=" + URLEncoder.encode(sensorsJson, StandardCharsets.UTF_8);
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://spaceapi.syn2cat.lu/sensor/set"))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(HttpRequest.BodyPublishers.ofString(formData))
+                .build();
+
+        HttpResponse<String> response = client.send(
+                request,
+                HttpResponse.BodyHandlers.ofString()
+        );
+        log.info("Space status set to {} via webhook", state);
+        return true;
     }
 
     private static boolean constantTimeEquals(String a, String b) {

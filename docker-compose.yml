@@ -8,6 +8,8 @@ services:
       DATABASE_URL: jdbc:postgresql://db:5432/warp3
       DATABASE_USER: warp3
       DATABASE_PASSWORD: warp3
+      SPACE_API_KEY: PLEASE_CHANGE_THIS
+      WEBHOOK_SPACE_SECRET: PLEASE_CHANGE_THIS
     depends_on:
       db:
         condition: service_healthy
